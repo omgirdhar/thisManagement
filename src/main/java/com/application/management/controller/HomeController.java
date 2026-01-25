@@ -9,8 +9,18 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class HomeController {
 
 	@GetMapping("/")
-	public String getMethodName() {
+	public String getLandingPage() {
 		return "index";
+	}
+	
+	@GetMapping("/dashboard")
+	public String getDashBoard() {
+		return "dashboard";
+	}
+	
+	@GetMapping("/login")
+	public String getLogin() {
+		return "login";
 	}
 	
 }
