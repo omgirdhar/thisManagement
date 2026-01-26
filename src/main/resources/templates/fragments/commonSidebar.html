@@ -1,20 +1,35 @@
 <!-- Sidebar -->
 <nav id="sidebar" class="col-lg-2 sidebar p-3">
   <ul class="nav nav-pills flex-column gap-1">
-    <li class="nav-item">
-      <a class="nav-link active" href="#"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="/users"><i class="bi bi-people me-2"></i>Users</a>
-    </li>
+	<!-- Dashboard: everyone -->
 	<li class="nav-item">
-      <a class="nav-link" href="/projects"><i class="bi bi-people me-2"></i>Projects</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#"><i class="bi bi-bar-chart me-2"></i>Reports</a>
-    </li>
-    <li class="nav-item">
-      <a class="nav-link" href="#"><i class="bi bi-gear me-2"></i>Settings</a>
-    </li>
+	  <a class="nav-link" th:classappend="${currentURI == '/dashboard'} ? ' active' : ''"
+	   href="/dashboard"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a>
+	</li>
+
+	<!-- Users: only ADMIN -->
+	<li class="nav-item" sec:authorize="hasRole('ADMIN')">
+	  <a class="nav-link" th:classappend="${currentURI == '/users'} ? ' active' : ''"
+	  href="/users"><i class="bi bi-people me-2"></i>Users</a>
+	</li>
+
+	<!-- Projects: USER or ADMIN -->
+	<li class="nav-item" sec:authorize="hasAnyRole('USER','ADMIN')">
+	  <a class="nav-link" th:classappend="${currentURI == '/projects'} ? ' active' : ''"
+	  href="/projects"><i class="bi bi-folder2-open me-2"></i>Projects</a>
+	</li>
+
+	<!-- Reports: only ADMIN -->
+	<li class="nav-item" sec:authorize="hasRole('ADMIN')">
+	  <a class="nav-link" th:classappend="${currentURI == '/reports'} ? ' active' : ''"
+	  href="/reports"><i class="bi bi-bar-chart me-2"></i>Reports</a>
+	</li>
+	<li class="nav-item" sec:authorize="hasRole('ADMIN')">
+	  <a class="nav-link" th:classappend="${currentURI == '/settings'} ? ' active' : ''"
+	  href="/settings"><i class="bi bi-gear me-2"></i>Settings</a>
+	</li>
+	<li class="nav-item" sec:authorize="hasAnyRole('USER','ADMIN')">
+	  <a class="nav-link" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a>
+	</li>
   </ul>
 </nav>

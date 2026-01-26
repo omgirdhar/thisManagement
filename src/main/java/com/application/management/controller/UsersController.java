@@ -1,5 +1,5 @@
 package com.application.management.controller;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -15,10 +15,13 @@ import com.application.management.service.UserService;
 @Controller
 public class UsersController {
 
+    private final PasswordEncoder passwordEncoder;
+
     private final UserService userService;
 
-    public UsersController(UserService userService) {
+    public UsersController(UserService userService, PasswordEncoder passwordEncoder) {
         this.userService = userService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     // SHOW USERS PAGE
@@ -33,6 +36,9 @@ public class UsersController {
     // SAVE USER
     @PostMapping("/saveUser")
     public String saveUser(@ModelAttribute("newUser") User user) {
+    	if (user.getId() == 0) { // new user
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        }
         userService.saveUser(user);
         return "redirect:/users";
     }
