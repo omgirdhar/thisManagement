@@ -1,5 +1,4 @@
 package com.application.management.controller;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,9 +26,7 @@ public class UsersController {
 
     // SHOW USERS PAGE
     @GetMapping("/users")
-    public ModelAndView usersPage(Authentication authentication) {
-    	System.out.println("Current User: " + authentication.getName());
-        System.out.println("Authorities: " + authentication.getAuthorities());
+    public ModelAndView usersPage() {
         ModelAndView view = new ModelAndView("users");
         view.addObject("newUser", new User());
         view.addObject("userList", userService.getAllUsers());
