@@ -1,11 +1,13 @@
 package com.application.management.model;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -27,6 +29,9 @@ public class User {
 	private String role;
 	
 	private boolean active;
+	
+	@OneToMany(mappedBy = "user")
+	private Set<ProjectMember> projects;
 	
 	private LocalDateTime createdOn = LocalDateTime.now();
 
@@ -92,6 +97,14 @@ public class User {
 
 	public void setCreatedOn(LocalDateTime createdOn) {
 		this.createdOn = createdOn;
+	}
+
+	public Set<ProjectMember> getProjects() {
+		return projects;
+	}
+
+	public void setProjects(Set<ProjectMember> projects) {
+		this.projects = projects;
 	}
 	
 }
