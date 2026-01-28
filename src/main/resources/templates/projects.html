@@ -64,6 +64,10 @@
 	                      th:onclick="openEditModal([[${project.id}]])">
 	                <i class="bi bi-pencil"></i>
 	              </button>
+				  <button class="btn btn-sm btn-secondary"
+				          th:onclick="openAssignUsersModal([[${project.id}]])">
+				    <i class="bi bi-people"></i>
+				  </button>
 	              <a th:href="@{/deleteProject/{id}(id=${project.id})}"
 	                 class="btn btn-sm btn-danger"
 					 onclick="return confirm('Are you sure?')">
@@ -139,6 +143,80 @@
   </div>
 </div>
 
+<!-- ASSIGN USERS MODAL -->
+<div class="modal fade" id="assignUsersModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content shadow">
+
+      <!-- Header -->
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-people-fill me-2"></i>
+          Assign Users to Project
+        </h5>
+        <button type="button" class="btn-close btn-close-white"
+                data-bs-dismiss="modal"></button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <input type="hidden" id="assignProjectId">
+
+        <div class="row g-4">
+
+          <!-- Available Users -->
+          <div class="col-md-6">
+            <div class="card h-100 border-secondary">
+              <div class="card-header bg-light fw-semibold">
+                <i class="bi bi-person-plus me-1"></i>
+                Available Users
+              </div>
+
+              <div class="card-body p-2" style="max-height: 350px; overflow-y: auto;">
+                <div id="availableUsers" class="list-group list-group-flush">
+                  <!-- populated by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned Users -->
+          <div class="col-md-6">
+            <div class="card h-100 border-success">
+              <div class="card-header bg-light fw-semibold text-success">
+                <i class="bi bi-check-circle me-1"></i>
+                Assigned Users
+              </div>
+
+              <div class="card-body p-2" style="max-height: 350px; overflow-y: auto;">
+                <div id="assignedUsers" class="list-group list-group-flush">
+                  <!-- populated by JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary"
+                data-bs-dismiss="modal">
+          Cancel
+        </button>
+        <button type="button" class="btn btn-success"
+                onclick="saveUserAssignments()">
+          <i class="bi bi-save me-1"></i>
+          Save Changes
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -157,6 +235,62 @@ function openEditModal(id) {
       projectModal.show();
     });
 }
+</script>
+<script>
+	let assignModal = new bootstrap.Modal(
+	  document.getElementById('assignUsersModal')
+	);
+
+	function openAssignUsersModal(projectId) {
+	  document.getElementById('assignProjectId').value = projectId;
+
+	  authFetch(`/projects/${projectId}/users`)
+	    .then(users => renderUsers(users));
+
+	  assignModal.show();
+	}
+
+	function renderUsers(users) {
+	  availableUsers.innerHTML = "";
+	  assignedUsers.innerHTML = "";
+
+	  users.forEach(u => {
+	    const item = `
+	      <label class="list-group-item d-flex align-items-center gap-2">
+	        <input class="form-check-input me-2" type="checkbox"
+	               value="${u.userId}"
+	               ${u.assigned ? "checked" : ""}>
+	        <i class="bi bi-person-circle text-muted"></i>
+	        <span>${u.name}</span>
+	      </label>
+	    `;
+
+	    if (u.assigned) {
+	      assignedUsers.insertAdjacentHTML("beforeend", item);
+	    } else {
+	      availableUsers.insertAdjacentHTML("beforeend", item);
+	    }
+	  });
+	}
+
+
+	function saveUserAssignments() {
+	  let projectId = assignProjectId.value;
+
+	  let selectedUsers = [...document.querySelectorAll(
+	    '#assignUsersModal input:checked'
+	  )].map(cb => cb.value);
+
+	  authFetch(`/projects/${projectId}/users`,{
+	    method: "POST",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+		parseJson: false ,
+	    body: JSON.stringify(selectedUsers)
+	  }).then(() => assignModal.hide());
+	}
+
 </script>
 </body>
 </html>
