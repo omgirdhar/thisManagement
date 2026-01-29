@@ -3,6 +3,8 @@ package com.application.management.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,6 +32,7 @@ public class User {
 	
 	private boolean active;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "user")
 	private Set<ProjectMember> projects;
 	

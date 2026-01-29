@@ -3,6 +3,8 @@ package com.application.management.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -23,6 +25,7 @@ public class Project {
     private String status;   // ACTIVE / INACTIVE
     private LocalDateTime createdOn = LocalDateTime.now();
     
+    @JsonIgnore
     @OneToMany(mappedBy = "project")
     private Set<ProjectMember> members;
 
