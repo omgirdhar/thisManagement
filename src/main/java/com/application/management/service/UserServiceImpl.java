@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 
 import com.application.management.model.User;
 import com.application.management.repo.UserRepository;
+import com.application.management.utils.SecurityUtils;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -18,7 +19,6 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User saveUser(User user) {
-        // 🔐 later you can encode password here
         return userRepository.save(user);
     }
 
@@ -37,4 +37,17 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+	@Override
+	public User getUserByEmail(String email) {
+		return userRepository.findByEmail(email)
+				.orElseThrow(() -> new RuntimeException("User not found"));
+	}
+    
+	@Override
+	public User getCurrentUser() {
+	    String email = SecurityUtils.getCurrentUsername();
+	    return getUserByEmail(email);
+	}
+    
 }
