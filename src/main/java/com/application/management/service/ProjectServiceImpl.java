@@ -12,9 +12,6 @@ import com.application.management.model.ProjectMember;
 import com.application.management.model.User;
 import com.application.management.repo.ProjectMemberRepository;
 import com.application.management.repo.ProjectRepository;
-import com.application.management.repo.UserRepository;
-import com.application.management.utils.SecurityUtils;
-
 import jakarta.transaction.Transactional;
 
 @Service
@@ -22,13 +19,13 @@ public class ProjectServiceImpl implements ProjectService {
 
     private final ProjectMemberRepository projectMemberRepository;
 
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     private final ProjectRepository projectRepository;
 
-    public ProjectServiceImpl(ProjectRepository projectRepository, UserRepository userRepository, ProjectMemberRepository projectMemberRepository) {
+    public ProjectServiceImpl(ProjectRepository projectRepository, UserService userService, ProjectMemberRepository projectMemberRepository) {
         this.projectRepository = projectRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.projectMemberRepository = projectMemberRepository;
     }
 
@@ -55,7 +52,7 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     public List<ProjectUserDTO> getProjectUsers(Long projectId) {
 
-        List<User> allUsers = userRepository.findAll();
+        List<User> allUsers = userService.getAllUsers();
         List<ProjectMember> assignedMembers =
                 projectMemberRepository.findByProjectId(projectId);
 
@@ -83,7 +80,7 @@ public class ProjectServiceImpl implements ProjectService {
 	    projectMemberRepository.deleteByProject(project);
 
 	    for (long userId : userIds) {
-	        User user = userRepository.findById(userId).orElseThrow();
+	        User user = userService.getUserById(userId);
 
 	        ProjectMember pm = new ProjectMember();
 	        pm.setProject(project);
@@ -94,15 +91,9 @@ public class ProjectServiceImpl implements ProjectService {
 	    }
 	}
 	
-	public User getCurrentUser() {
-	    String email = SecurityUtils.getCurrentUsername();
-	    return userRepository.findByEmail(email)
-	            .orElseThrow(() -> new RuntimeException("User not found"));
-	}
-	
 	@Override
 	public List<Project> getAllProjectsForUser() {
-	    User currentUser = getCurrentUser();
+	    User currentUser = userService.getCurrentUser();
 	    return projectMemberRepository.findProjectsByUserId(currentUser.getId());
 	}
 

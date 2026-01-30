@@ -34,6 +34,10 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "assignee_id")
     private User assignee;
+    
+    @ManyToOne
+    @JoinColumn(name = "creator_id")
+    private User createdBy;
 
     @ManyToOne
     @JoinColumn(name = "project_id")
@@ -48,6 +52,18 @@ public class Task {
 
     @OneToMany(mappedBy = "parentTask")
     private List<Task> subTasks = new ArrayList<>();
+    
+//    New fields to Add
+//    priority 
+//    created_at
+//    updated_at
+//    assigned_to
+//    due_date
+//    start_date
+//    completed_at
+//    estimated_time
+//    actual_time
+//    comments
 
     public Task() {}
 
@@ -130,5 +146,13 @@ public class Task {
 
 	public void setSubTasks(List<Task> subTasks) {
 		this.subTasks = subTasks;
+	}
+
+	public User getCreatedBy() {
+		return createdBy;
+	}
+
+	public void setCreatedBy(User createdBy) {
+		this.createdBy = createdBy;
 	}        
 }
