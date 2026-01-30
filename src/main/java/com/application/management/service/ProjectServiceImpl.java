@@ -13,6 +13,8 @@ import com.application.management.model.User;
 import com.application.management.repo.ProjectMemberRepository;
 import com.application.management.repo.ProjectRepository;
 import com.application.management.repo.UserRepository;
+import com.application.management.utils.SecurityUtils;
+
 import jakarta.transaction.Transactional;
 
 @Service
@@ -90,6 +92,18 @@ public class ProjectServiceImpl implements ProjectService {
 
 	        projectMemberRepository.save(pm);
 	    }
+	}
+	
+	public User getCurrentUser() {
+	    String email = SecurityUtils.getCurrentUsername();
+	    return userRepository.findByEmail(email)
+	            .orElseThrow(() -> new RuntimeException("User not found"));
+	}
+	
+	@Override
+	public List<Project> getAllProjectsForUser() {
+	    User currentUser = getCurrentUser();
+	    return projectMemberRepository.findProjectsByUserId(currentUser.getId());
 	}
 
 }

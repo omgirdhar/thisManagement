@@ -3,6 +3,7 @@ package com.application.management.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -26,12 +27,22 @@ public class ProjectsController {
     }
 
     @GetMapping("/projects")
-    public ModelAndView projectsPage() {
-        ModelAndView view = new ModelAndView("projects");
-        view.addObject("newProject", new Project());
-        view.addObject("projectList", projectService.getAllProjects());
+    public ModelAndView projectsPage(Authentication authentication) {
+        ModelAndView view;
+
+        if (authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
+            view = new ModelAndView("projects"); // admin page
+            view.addObject("newProject", new Project());
+            view.addObject("projectList", projectService.getAllProjects());
+        } else {
+            view = new ModelAndView("usersProject"); // user page
+            view.addObject("projectList", projectService.getAllProjectsForUser());
+        }
+
         return view;
     }
+
 
     @PostMapping("/saveProject")
     public String saveProject(@ModelAttribute("newProject") Project project) {
@@ -70,6 +81,13 @@ public class ProjectsController {
 
         projectService.assignUsers(projectId, userIds);
         return ResponseEntity.ok().build();
+    }
+    
+    @GetMapping("/user/projects")
+    public ModelAndView userProjectsPage() {
+        ModelAndView view = new ModelAndView("usersProject");
+        view.addObject("projectList", projectService.getAllProjectsForUser());
+        return view;
     }
 
 }

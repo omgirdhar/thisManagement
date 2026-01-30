@@ -3,6 +3,8 @@ package com.application.management.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -16,7 +18,7 @@ public class User {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private long id;
+	private Long id;
 	
 	private String firstName;
 	
@@ -30,16 +32,17 @@ public class User {
 	
 	private boolean active;
 	
+	@JsonIgnore
 	@OneToMany(mappedBy = "user")
 	private Set<ProjectMember> projects;
 	
 	private LocalDateTime createdOn = LocalDateTime.now();
 
-	public long getId() {
+	public Long getId() {
 		return id;
 	}
 
-	public void setId(long id) {
+	public void setId(Long id) {
 		this.id = id;
 	}
 

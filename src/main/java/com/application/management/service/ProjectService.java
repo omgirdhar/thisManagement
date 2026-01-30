@@ -18,4 +18,6 @@ public interface ProjectService {
 	List<ProjectUserDTO> getProjectUsers(Long projectId);
 
 	void assignUsers(Long projectId, List<Long> userIds);
+
+	List<Project> getAllProjectsForUser();
 }
