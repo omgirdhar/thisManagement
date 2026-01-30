@@ -1,13 +1,20 @@
 package com.application.management.model;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.application.management.utils.Enums.TaskType;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -31,6 +38,16 @@ public class Task {
     @ManyToOne
     @JoinColumn(name = "project_id")
     private Project project;
+    
+    @Enumerated(EnumType.STRING)
+    private TaskType taskType;
+    
+    @ManyToOne
+    @JoinColumn(name = "parent_task_id")
+    private Task parentTask;
+
+    @OneToMany(mappedBy = "parentTask")
+    private List<Task> subTasks = new ArrayList<>();
 
     public Task() {}
 
@@ -82,5 +99,36 @@ public class Task {
 	public void setAssignee(User assignee) {
 		this.assignee = assignee;
 	}
-        
+
+	public Project getProject() {
+		return project;
+	}
+
+	public void setProject(Project project) {
+		this.project = project;
+	}
+
+	public TaskType getTaskType() {
+		return taskType;
+	}
+
+	public void setTaskType(TaskType taskType) {
+		this.taskType = taskType;
+	}
+
+	public Task getParentTask() {
+		return parentTask;
+	}
+
+	public void setParentTask(Task parentTask) {
+		this.parentTask = parentTask;
+	}
+
+	public List<Task> getSubTasks() {
+		return subTasks;
+	}
+
+	public void setSubTasks(List<Task> subTasks) {
+		this.subTasks = subTasks;
+	}        
 }
