@@ -4,6 +4,8 @@ import java.util.List;
 import com.application.management.repo.TaskRepository;
 import com.application.management.utils.Enums.TaskType;
 
+import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
 
 import com.application.management.model.Project;
@@ -23,9 +25,9 @@ public class TaskServiceImpl implements TaskService{
     }
 
 	@Override
-	public List<Task> getTasksForUser(Project project,TaskType type) {
+	public List<Task> getTasksForUser(Project project) {
 		User user = userService.getCurrentUser();
-		return taskRepository.findByAssigneeAndCreatedByAndProjectAndTaskType(user, user,project,type);
+		return taskRepository.findByAssigneeAndCreatedByAndProjectAndParentTaskNull(user, user,project);
 	}
 	
 	@Override
@@ -48,6 +50,15 @@ public class TaskServiceImpl implements TaskService{
 	@Override
 	public List<Task> getChildTasksByParentTaskId(Task task){
 		return taskRepository.findByParentTask(task);
+	}
+
+	@Transactional
+	public void updateDescription(Long taskId, String description) {
+	    Task task = taskRepository.findById(taskId)
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
+
+	    task.setDescription(description);
+	    taskRepository.save(task);
 	}
 
 }

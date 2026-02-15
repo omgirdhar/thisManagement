@@ -13,7 +13,7 @@ import com.application.management.utils.Enums.TaskType;
 
 public interface TaskRepository extends JpaRepository<Task, Long>{
 		
-	List<Task> findByAssigneeAndCreatedByAndProjectAndTaskType(User assignee, User createdBy, Project project, TaskType taskType);
+	List<Task> findByAssigneeAndCreatedByAndProjectAndParentTaskNull(User assignee, User createdBy, Project project);
 	
 	List<Task> findByParentTask(Task parentTask);
 	

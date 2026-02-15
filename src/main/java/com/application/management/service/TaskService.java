@@ -14,7 +14,9 @@ public interface TaskService {
 
 	void deleteTask(Long id);
 
-	List<Task> getTasksForUser(Project project, TaskType type);
+	List<Task> getTasksForUser(Project project);
 
 	List<Task> getChildTasksByParentTaskId(Task task);
+	
+	void updateDescription(Long taskId, String description);
 }

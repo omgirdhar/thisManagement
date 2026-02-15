@@ -53,6 +53,8 @@ public class Task {
     @OneToMany(mappedBy = "parentTask")
     private List<Task> subTasks = new ArrayList<>();
     
+    private String description;
+    
 //    New fields to Add
 //    priority 
 //    created_at
@@ -154,5 +156,13 @@ public class Task {
 
 	public void setCreatedBy(User createdBy) {
 		this.createdBy = createdBy;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}        
 }

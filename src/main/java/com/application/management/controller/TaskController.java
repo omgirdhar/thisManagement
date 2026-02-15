@@ -2,12 +2,17 @@ package com.application.management.controller;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -42,7 +47,7 @@ public class TaskController {
         List<ProjectUserDTO> projectUsers = projectService.getProjectUsers(projectId);
         model.addAttribute("projectUsers", projectUsers);
         
-        List<Task> allTasks = taskService.getTasksForUser(project,TaskType.EPIC);
+        List<Task> allTasks = taskService.getTasksForUser(project);
         model.addAttribute("taskList", allTasks);
 
         Task newTask = new Task();
@@ -139,5 +144,17 @@ public class TaskController {
         model.addAttribute("projectId", projectId);
         return "usersProjectTasks"; // or redirect to modal
     }
+    
+    @PatchMapping("/{taskId}/description")
+    @ResponseBody
+    public ResponseEntity<?> updateDescription(@PathVariable Long taskId,
+                                               @RequestBody Map<String, String> payload) {
+
+        String description = payload.get("description");
+        taskService.updateDescription(taskId, description);
+
+        return ResponseEntity.ok().build();
+    }
+
 
 }
