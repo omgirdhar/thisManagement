@@ -1,5 +1,6 @@
 package com.application.management.controller;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -18,9 +20,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.application.management.dto.ProjectUserDTO;
+import com.application.management.model.Comment;
 import com.application.management.model.Project;
 import com.application.management.model.Task;
 import com.application.management.model.User;
+import com.application.management.service.CommentService;
 import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
 import com.application.management.utils.Enums.TaskType;
@@ -32,10 +36,12 @@ public class TaskController {
 
     private final ProjectService projectService;
     private final TaskService taskService;
+    private final CommentService commentService;
 
-    TaskController(ProjectService projectService, TaskService taskService) {
+    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService) {
         this.projectService = projectService;
         this.taskService = taskService;
+        this.commentService = commentService;
     }
 
     @GetMapping
@@ -91,22 +97,6 @@ public class TaskController {
         System.out.println("Deleted Task: " + taskId + " from project: " + projectId);
         return "redirect:/projects/" + projectId + "/tasks";
     }
-
-    // Dummy fetch for edit modal
-    @GetMapping("/taskDetails")
-    @ResponseBody
-    public Task getTaskDetails(@RequestParam Long taskId) {
-        User alice = new User();
-        alice.setId(1L);
-        alice.setFirstName("Alice");
-        alice.setLastName("Smith");
-
-        Project project = new Project();
-        project.setId(1L);
-        project.setName("Project Alpha");
-
-        return new Task(taskId, "Sample Task", "PENDING", LocalDate.now().plusDays(7), alice, project);
-    }
     
     @GetMapping("/details/{taskId}")
     public String taskDetails(@PathVariable Long projectId,
@@ -120,6 +110,9 @@ public class TaskController {
         	List<Task> childTasks = taskService.getChildTasksByParentTaskId(currentTask);
         	model.addAttribute("childTasks", childTasks);
         }
+		List<Comment> comments = commentService.getCommentsByTask(currentTask);
+
+        model.addAttribute("comments", comments);
         model.addAttribute("currentTask", currentTask);
         return "taskDetails";
     }
@@ -155,6 +148,55 @@ public class TaskController {
 
         return ResponseEntity.ok().build();
     }
+    
+    @PatchMapping("/{taskId}/priority")
+    @ResponseBody
+    public ResponseEntity<?> updatePriority(@PathVariable Long taskId,
+                                            @RequestBody Map<String, String> payload) {
+
+        String priorityValue = payload.get("priority");
+
+        taskService.updatePriority(taskId, priorityValue);
+
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/{taskId}/due-date")
+    @ResponseBody
+    public ResponseEntity<?> updateDueDate(@PathVariable Long taskId,
+                                           @RequestBody Map<String, String> payload) {
+
+        String dueDateValue = payload.get("dueDate");
+
+        taskService.updateDueDate(taskId, dueDateValue);
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @PatchMapping("/{taskId}/start-date")
+    @ResponseBody
+    public ResponseEntity<?> updateStartDate(@PathVariable Long taskId,
+                                             @RequestBody Map<String, String> payload) {
+
+        String startDateValue = payload.get("startDate");
+
+        taskService.updateStartDate(taskId, startDateValue);
+
+        return ResponseEntity.ok().build();
+    }
+    
+    @PatchMapping("/{taskId}/estimate")
+    @ResponseBody
+    public ResponseEntity<?> updateEstimate(@PathVariable Long taskId,
+                                            @RequestBody Map<String, String> payload) {
+
+        String estimateValue = payload.get("estimate");
+
+        taskService.updateEstimate(taskId, estimateValue);
+
+        return ResponseEntity.ok().build();
+    }
+
 
 
 }

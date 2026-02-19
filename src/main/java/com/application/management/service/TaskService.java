@@ -19,4 +19,12 @@ public interface TaskService {
 	List<Task> getChildTasksByParentTaskId(Task task);
 	
 	void updateDescription(Long taskId, String description);
+	
+	void updatePriority(Long taskId, String priorityValue);
+	
+	void updateDueDate(Long taskId, String dueDateValue);
+	
+	void updateStartDate(Long taskId, String startDateValue);
+	
+	void updateEstimate(Long taskId, String estimateValue);
 }

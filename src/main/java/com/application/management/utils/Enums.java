@@ -8,5 +8,11 @@ public class Enums {
 	    TASK,
 	    SUB_TASK
 	}
+	
+	public enum Priority {
+	    HIGH,
+	    MEDIUM,
+	    LOW
+	}
 
 }

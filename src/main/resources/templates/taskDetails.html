@@ -104,30 +104,152 @@
 			  <div class="mt-3">
 
 			    <!-- Priority -->
-			    <div class="d-flex py-2 border-bottom align-items-center">
-			      <div style="width: 200px;" class="text-muted">Priority</div>
-			      <div>
-			        <span class="badge bg-danger">High</span>
-			      </div>
-			    </div>
+				<!-- Priority -->
+				<div class="d-flex py-2 border-bottom align-items-center">
+				  <div style="width: 200px;" class="text-muted">Priority</div>
+
+				  <!-- VIEW MODE -->
+				  <div id="priority-view"
+				       style="cursor:pointer;"
+				       onclick="enablePriorityEdit()">
+
+				    <!-- If priority exists -->
+				    <span th:if="${currentTask.priority != null}"
+				          class="badge"
+				          th:classappend="${currentTask.priority.name() == 'HIGH'} ? 'bg-danger' :
+				                          (${currentTask.priority.name() == 'MEDIUM'} ? 'bg-warning text-dark' :
+				                          'bg-secondary')"
+				          th:text="${currentTask.priority}">
+				    </span>
+
+				    <!-- If priority is null -->
+				    <span th:if="${currentTask.priority == null}"
+				          class="text-muted">
+				      Select Priority
+				    </span>
+
+				  </div>
+
+				  <!-- EDIT MODE -->
+				  <div id="priority-edit" class="d-none">
+				    <select id="priority-select"
+				            class="form-select form-select-sm"
+				            th:onchange="savePriority([[${currentTask.id}]])">
+
+				      <option value="HIGH"
+				              th:selected="${currentTask.priority?.name() == 'HIGH'}">High</option>
+
+				      <option value="MEDIUM"
+				              th:selected="${currentTask.priority?.name() == 'MEDIUM'}">Medium</option>
+
+				      <option value="LOW"
+				              th:selected="${currentTask.priority?.name() == 'LOW'}">Low</option>
+				    </select>
+				  </div>
+				</div>
+
 
 			    <!-- Due Date -->
-			    <div class="d-flex py-2 border-bottom align-items-center">
-			      <div style="width: 200px;" class="text-muted">Due Date</div>
-			      <div th:text="${currentTask.dueDate} ?: '-'"></div>
-			    </div>
+				<div class="d-flex py-2 border-bottom align-items-center">
+				  <div style="width: 200px;" class="text-muted">Due Date</div>
+
+				  <!-- VIEW MODE -->
+				  <div id="dueDate-view"
+				       style="cursor:pointer;"
+				       onclick="enableDueDateEdit()">
+
+				    <span th:if="${currentTask.dueDate != null}"
+				          th:text="${#temporals.format(currentTask.dueDate, 'dd MMM yyyy')}">
+				    </span>
+
+				    <span th:if="${currentTask.dueDate == null}"
+				          class="text-muted">
+				      Set due date
+				    </span>
+				  </div>
+
+				  <!-- EDIT MODE -->
+				  <div id="dueDate-edit"
+				       th:classappend="${currentTask.dueDate == null} ? '' : 'd-none'">
+
+				    <input type="date"
+				           id="dueDate-input"
+				           class="form-control form-control-sm"
+				           th:value="${currentTask.dueDate}"
+				           th:onchange="saveDueDate([[${currentTask.id}]])">
+				  </div>
+				</div>
 
 			    <!-- Start Date -->
-			    <div class="d-flex py-2 border-bottom align-items-center">
-			      <div style="width: 200px;" class="text-muted">Start Date</div>
-			      <div>-</div>
-			    </div>
+				<div class="d-flex py-2 border-bottom align-items-center">
+				  <div style="width: 200px;" class="text-muted">Start Date</div>
+
+				  <!-- VIEW MODE -->
+				  <div id="startDate-view"
+				       style="cursor:pointer;"
+				       onclick="enableStartDateEdit()">
+
+				    <span th:if="${currentTask.startDate != null}"
+				          th:text="${#temporals.format(currentTask.startDate, 'dd MMM yyyy')}">
+				    </span>
+
+				    <span th:if="${currentTask.startDate == null}"
+				          class="text-muted">
+				      Set start date
+				    </span>
+				  </div>
+
+				  <!-- EDIT MODE -->
+				  <div id="startDate-edit"
+				       th:classappend="${currentTask.startDate == null} ? '' : 'd-none'">
+
+				    <input type="date"
+				           id="startDate-input"
+				           class="form-control form-control-sm"
+				           th:value="${currentTask.startDate}"
+				           th:onchange="saveStartDate([[${currentTask.id}]])">
+				  </div>
+				</div>
 
 			    <!-- Original Estimate -->
-			    <div class="d-flex py-2 align-items-center">
-			      <div style="width: 200px;" class="text-muted">Original Estimate</div>
-			      <div>--</div>
-			    </div>
+				<!-- Original Estimate -->
+				<div class="d-flex py-2 align-items-center">
+				  <div style="width: 200px;" class="text-muted">Original Estimate</div>
+
+				  <!-- VIEW MODE -->
+				  <div id="estimate-view"
+				       style="cursor:pointer;"
+				       onclick="enableEstimateEdit()">
+
+					   <span th:if="${currentTask.originalEstimateMinutes != null}"
+					         th:text="|${currentTask.originalEstimateMinutes / 60}h 
+					                  ${currentTask.originalEstimateMinutes % 60}m|">
+					   </span>
+
+
+				    <span th:if="${currentTask.originalEstimateMinutes == null}"
+				          class="text-muted">
+				      Set estimate
+				    </span>
+				  </div>
+
+				  <!-- EDIT MODE -->
+				  <!-- EDIT MODE -->
+				  <div id="estimate-edit"
+				       th:classappend="${currentTask.originalEstimateMinutes == null} ? '' : 'd-none'">
+
+				    <input type="text"
+				           id="estimate-input"
+				           class="form-control form-control-sm"
+				           placeholder="e.g. 2h 30m, 90m, 1.5h"
+				           th:value="${currentTask.originalEstimateMinutes != null ?
+				                      (currentTask.originalEstimateMinutes / 60) + 'h ' +
+				                      (currentTask.originalEstimateMinutes % 60) + 'm' : ''}"
+				           th:onchange="saveEstimate([[${currentTask.id}]])">
+				  </div>
+
+				</div>
+
 
 			  </div>
 
@@ -179,21 +301,72 @@
 	      </div>
 
 	      <!-- COMMENTS SECTION -->
-	      <div class="card">
-	        <div class="card-header bg-light fw-semibold">
-	          Comments
-	        </div>
-	        <div class="card-body">
-	          <p class="text-muted">No comments yet.</p>
+		  <div class="card">
+		    <div class="card-header bg-light fw-semibold">
+		      Comments
+		    </div>
+		    <div class="card-body">
 
-	          <textarea class="form-control mb-2"
-	                    rows="3"
-	                    placeholder="Add a comment..."></textarea>
-	          <button class="btn btn-primary btn-sm">
-	            Add Comment
-	          </button>
-	        </div>
-	      </div>
+		      <!-- Existing Comments -->
+		      <div id="comments-container">
+		        <div th:each="comment : ${comments}"
+		             class="border rounded p-2 mb-2">
+
+		          <small class="text-muted"
+		                 th:text="${comment.author.firstName + ' ' + comment.author.lastName}">
+		          </small>
+
+		          <!-- VIEW MODE -->
+		          <div th:id="'comment-view-' + ${comment.id}"
+		               th:text="${comment.content}"
+		               style="cursor:pointer;"
+		               th:onclick="'enableCommentEdit(' + ${comment.id} + ')'">
+		          </div>
+
+		          <!-- EDIT MODE -->
+		          <div th:id="'comment-edit-' + ${comment.id}"
+		               class="d-none">
+
+		            <textarea class="form-control mb-2"
+		                      th:id="'comment-textarea-' + ${comment.id}"
+		                      th:text="${comment.content}">
+		            </textarea>
+
+		            <button class="btn btn-sm btn-primary"
+		                    th:onclick="'saveComment(' + ${comment.id} + ')'">
+		              Save
+		            </button>
+
+		            <button class="btn btn-sm btn-secondary"
+		                    th:onclick="'cancelCommentEdit(' + ${comment.id} + ')'">
+		              Cancel
+		            </button>
+
+		            <!-- Delete only if logged in user is author -->
+		            <button class="btn btn-sm btn-danger"
+		                    th:if="${comment.author.email == #authentication.principal.username}"
+		                    th:onclick="'deleteComment(' + ${comment.id} + ')'">
+		              Delete
+		            </button>
+		          </div>
+
+		        </div>
+		      </div>
+
+		      <!-- Add Comment -->
+		      <textarea id="new-comment"
+		                class="form-control mb-2"
+		                rows="3"
+		                placeholder="Add a comment..."></textarea>
+
+		      <button class="btn btn-primary btn-sm"
+		              th:onclick="'addComment(' + ${currentTask.id} + ')'">
+		        Add Comment
+		      </button>
+
+		    </div>
+		  </div>
+
 
 	    </div>
 
@@ -294,11 +467,13 @@
     document.getElementById("description-view").classList.remove("d-none");
   }
 
+  var projectId = /*[[${project.id}]]*/0;
+  var taskId = /*[[${currentTask.id}]]*/ 0;
   function saveDescription(taskId) {
 
     const newDescription =
         document.getElementById("description-textarea").value;
-		var projectId = /*[[${project.id}]]*/0;
+		
     fetch(`/projects/${projectId}/tasks/${taskId}/description`, {
       method: "PATCH",
       headers: {
@@ -320,6 +495,238 @@
     });
   }
 </script>
+<script>
+	function enableCommentEdit(commentId) {
+	  document.getElementById("comment-view-" + commentId)
+	          .classList.add("d-none");
+	  document.getElementById("comment-edit-" + commentId)
+	          .classList.remove("d-none");
+	}
 
+	function cancelCommentEdit(commentId) {
+	  document.getElementById("comment-edit-" + commentId)
+	          .classList.add("d-none");
+	  document.getElementById("comment-view-" + commentId)
+	          .classList.remove("d-none");
+	}
+
+	function addComment(taskId) {
+
+	  const content = document.getElementById("new-comment").value;
+
+	  if (!content.trim()) {
+	    alert("Comment cannot be empty");
+	    return;
+	  }
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/comments`, {
+	    method: "POST",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      content: content
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+	      location.reload(); // simplest for now
+	    } else {
+	      alert("Failed to add comment");
+	    }
+	  });
+	}
+
+	function saveComment(commentId) {
+
+	  const content =
+	      document.getElementById("comment-textarea-" + commentId).value;
+
+	  fetch(`/projects/${projectId}/tasks/comments/${commentId}`, {
+	    method: "PATCH",
+	    headers: { "Content-Type": "application/json" },
+	    body: JSON.stringify({ content: content })
+	  })
+	  .then(response => {
+	    if(response.ok) {
+	      document.getElementById("comment-view-" + commentId)
+	              .innerText = content;
+	      cancelCommentEdit(commentId);
+	    } else {
+	      alert("Failed to update comment");
+	    }
+	  });
+	}
+
+	function deleteComment(commentId) {
+
+	  fetch(`/projects/${projectId}/tasks/comments/${commentId}`, {
+	    method: "DELETE"
+	  })
+	  .then(response => {
+	    if(response.ok) {
+	      document.getElementById("comment-view-" + commentId)
+	              .parentElement.remove();
+	    } else {
+	      alert("Failed to delete comment");
+	    }
+	  });
+	}
+
+</script>
+<script>
+	function enablePriorityEdit() {
+	  document.getElementById("priority-view").classList.add("d-none");
+	  document.getElementById("priority-edit").classList.remove("d-none");
+	}
+
+	function savePriority(taskId) {
+
+	  const newPriority =
+	      document.getElementById("priority-select").value;
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/priority`, {
+	    method: "PATCH",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      priority: newPriority
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+	      location.reload(); // simplest for now
+	    } else {
+	      alert("Failed to update priority");
+	    }
+	  });
+	}
+</script>
+<script>
+	function enableDueDateEdit() {
+	  document.getElementById("dueDate-view").classList.add("d-none");
+	  document.getElementById("dueDate-edit").classList.remove("d-none");
+	}
+
+	function saveDueDate(taskId) {
+
+	  const newDate =
+	      document.getElementById("dueDate-input").value;
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/due-date`, {
+	    method: "PATCH",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      dueDate: newDate || null
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+
+	      const viewDiv = document.getElementById("dueDate-view");
+
+	      if (newDate) {
+	        viewDiv.innerText =
+	            new Date(newDate).toLocaleDateString('en-GB', {
+	              day: '2-digit',
+	              month: 'short',
+	              year: 'numeric'
+	            });
+	      } else {
+	        viewDiv.innerHTML =
+	            '<span class="text-muted">Set due date</span>';
+	      }
+
+	      document.getElementById("dueDate-edit")
+	              .classList.add("d-none");
+	      viewDiv.classList.remove("d-none");
+
+	    } else {
+	      alert("Failed to update due date");
+	    }
+	  });
+	}
+
+	function enableStartDateEdit() {
+	  document.getElementById("startDate-view").classList.add("d-none");
+	  document.getElementById("startDate-edit").classList.remove("d-none");
+	}
+
+	function saveStartDate(taskId) {
+
+	  const newDate =
+	      document.getElementById("startDate-input").value;
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/start-date`, {
+	    method: "PATCH",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      startDate: newDate || null
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+
+	      const viewDiv = document.getElementById("startDate-view");
+
+	      if (newDate) {
+	        viewDiv.innerText =
+	            new Date(newDate).toLocaleDateString('en-GB', {
+	              day: '2-digit',
+	              month: 'short',
+	              year: 'numeric'
+	            });
+	      } else {
+	        viewDiv.innerHTML =
+	            '<span class="text-muted">Set start date</span>';
+	      }
+
+	      document.getElementById("startDate-edit")
+	              .classList.add("d-none");
+	      viewDiv.classList.remove("d-none");
+
+	    } else {
+	      alert("Failed to update start date");
+	    }
+	  });
+	}
+
+</script>
+<script>
+	function enableEstimateEdit() {
+	  document.getElementById("estimate-view").classList.add("d-none");
+	  document.getElementById("estimate-edit").classList.remove("d-none");
+	}
+
+	function saveEstimate(taskId) {
+
+	  const value =
+	      document.getElementById("estimate-input").value;
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/estimate`, {
+	    method: "PATCH",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      estimate: value || null
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+	      location.reload(); // easier for now after parsing
+	    } else {
+	      alert("Invalid estimate format");
+	    }
+	  });
+	}
+
+
+</script>
 </body>
 </html>
