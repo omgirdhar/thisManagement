@@ -27,4 +27,6 @@ public interface TaskService {
 	void updateStartDate(Long taskId, String startDateValue);
 	
 	void updateEstimate(Long taskId, String estimateValue);
+	
+	void updateStatus(Long taskId, String status);
 }

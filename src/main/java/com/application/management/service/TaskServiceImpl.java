@@ -72,7 +72,7 @@ public class TaskServiceImpl implements TaskService{
 	    Task task = taskRepository.findById(taskId)
 	            .orElseThrow(() -> new RuntimeException("Task not found"));
 
-	    task.setPriority(Priority.valueOf(priorityValue));
+	    task.setPriority(priorityValue != null ? Priority.valueOf(priorityValue): null);
 	    taskRepository.save(task);
 	}
 
@@ -157,6 +157,16 @@ public class TaskServiceImpl implements TaskService{
 	    }
 
 	    return totalMinutes;
+	}
+
+	@Override
+	public void updateStatus(Long taskId, String status) {
+		Task task = taskRepository.findById(taskId)
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
+
+	    task.setStatus(status);
+	    taskRepository.save(task);
+		
 	}
 
 }

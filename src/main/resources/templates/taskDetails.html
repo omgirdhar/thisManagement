@@ -10,6 +10,11 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <link href="/css/sidebar.css" rel="stylesheet">
 </head>
+<style>
+	.accordion-button{
+		background-color: #fff !important;
+	}
+</style>
 <body>
 
 <!-- Navbar -->
@@ -22,433 +27,473 @@
     <div th:replace="~{fragments/commonSidebar}"></div>
 
     <!-- Main Content -->
-	<main class="col-lg-10 ms-auto p-4" style="background:#f4f5f7; min-height:100vh;">
+<main class="col-lg-10 ms-auto p-4" style="background:#f4f5f7; min-height:100vh;">
 
-	  <div class="row">
+  <div class="row">
 
-	    <!-- ========================= -->
-	    <!-- ======= MAIN AREA ======= -->
-	    <!-- ========================= -->
-	    <div class="col-lg-8">
+    <!-- ========================= -->
+    <!-- ======= MAIN AREA ======= -->
+    <!-- ========================= -->
+    <div class="col-lg-8">
 
-	      <!-- BREADCRUMB -->
-	      <nav aria-label="breadcrumb">
-	        <ol class="breadcrumb small">
-	          <li class="breadcrumb-item">
-	            <a th:href="@{/projects/{id}(id=${project.id})}"
-	               th:text="${project.name}">Project</a>
-	          </li>
+      <!-- BREADCRUMB -->
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb small">
+          <li class="breadcrumb-item">
+            <a th:href="@{/projects/{id}(id=${project.id})}"
+               th:text="${project.name}">Project</a>
+          </li>
 
-	          <li class="breadcrumb-item"
-	              th:if="${currentTask.parentTask != null}">
-	            <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
-	                projectId=${project.id},
-	                taskId=${currentTask.parentTask.id})}"
-	               th:text="${currentTask.parentTask.title}">
-	            </a>
-	          </li>
+          <li class="breadcrumb-item"
+              th:if="${currentTask.parentTask != null}">
+            <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
+                projectId=${project.id},
+                taskId=${currentTask.parentTask.id})}"
+               th:text="${currentTask.parentTask.title}">
+            </a>
+          </li>
 
-	          <li class="breadcrumb-item active"
-	              th:text="${currentTask.title}">
-	          </li>
-	        </ol>
-	      </nav>
+          <li class="breadcrumb-item active"
+              th:text="${currentTask.title}">
+          </li>
+        </ol>
+      </nav>
 
-	      <!-- TITLE -->
-	      <h2 class="fw-bold mb-3" th:text="${currentTask.title}"></h2>
+      <!-- TITLE -->
+      <h2 class="fw-bold mb-3" th:text="${currentTask.title}"></h2>
 
-	      <!-- META INFO ROW -->
-		  <div class="card mb-4">
+      <!-- KEY DETAILS - COLLAPSIBLE -->
+      <div class="accordion" id="keyDetailsAccordion">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button fw-semibold" 
+                    type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#keyDetailsCollapse"
+                    aria-expanded="true">
+              Key Details
+            </button>
+          </h3>
+          <div id="keyDetailsCollapse" 
+               class="accordion-collapse collapse show" 
+               data-bs-parent="#keyDetailsAccordion">
+            <div class="accordion-body">
+              
+              <!-- DESCRIPTION -->
+              <div class="mb-4">
+                <h6 class="text-muted fw-semibold">Description</h6>
 
-		    <div class="card-header bg-light fw-semibold">
-		      Key Details
-		    </div>
+                <!-- VIEW MODE -->
+                <div id="description-view"
+                     class="p-3 border rounded bg-white"
+                     style="cursor:pointer;"
+                     onclick="enableEdit()"
+                     th:text="${currentTask.description} ?: 'Click to add description...'">
+                </div>
 
-		    <div class="card-body">
+                <!-- EDIT MODE -->
+                <div id="description-edit" class="d-none mt-2">
+                  <textarea id="description-textarea"
+                            class="form-control"
+                            rows="4"
+                            th:text="${currentTask?.description}">
+                  </textarea>
 
-		      <!-- DESCRIPTION -->
-			  <div class="mb-4">
-			    <h6 class="text-muted fw-semibold">Description</h6>
+                  <div class="mt-2">
+                    <button class="btn btn-primary btn-sm"
+                            th:onclick="saveDescription([[${currentTask.id}]])">
+                      Save
+                    </button>
+                    <button class="btn btn-secondary btn-sm"
+                            onclick="cancelEdit()">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              </div>
 
-			    <!-- VIEW MODE -->
-			    <div id="description-view"
-			         class="p-3 border rounded bg-white"
-			         style="cursor:pointer;"
-			         onclick="enableEdit()"
-			         th:text="${currentTask.description} ?: 'Click to add description...'">
-			    </div>
+              <!-- META INFO GRID -->
+              <div class="mt-3">
 
-			    <!-- EDIT MODE -->
-			    <div id="description-edit" class="d-none mt-2">
-			      <textarea id="description-textarea"
-			                class="form-control"
-			                rows="4"
-			                th:text="${currentTask?.description}">
-			      </textarea>
+                <!-- Priority -->
+                <div class="d-flex py-2 border-bottom align-items-center">
+                  <div style="width: 200px;" class="text-muted">Priority</div>
 
-			      <div class="mt-2">
-			        <button class="btn btn-primary btn-sm"
-			                th:onclick="saveDescription([[${currentTask.id}]])">
-			          Save
-			        </button>
-			        <button class="btn btn-secondary btn-sm"
-			                onclick="cancelEdit()">
-			          Cancel
-			        </button>
-			      </div>
-			    </div>
-			  </div>
+                  <!-- VIEW MODE -->
+                  <div id="priority-view"
+                       style="cursor:pointer;"
+                       onclick="enablePriorityEdit()">
 
+                    <!-- If priority exists -->
+                    <span th:if="${currentTask.priority != null}"
+                          class="badge"
+                          th:classappend="${currentTask.priority.name() == 'HIGH'} ? 'bg-danger' :
+                                          (${currentTask.priority.name() == 'MEDIUM'} ? 'bg-warning text-dark' :
+                                          'bg-secondary')"
+                          th:text="${currentTask.priority}">
+                    </span>
 
-		      <!-- META INFO GRID -->
-			  <div class="mt-3">
+                    <!-- If priority is null -->
+                    <span th:if="${currentTask.priority == null}"
+                          class="text-muted">
+                      Select Priority
+                    </span>
 
-			    <!-- Priority -->
-				<!-- Priority -->
-				<div class="d-flex py-2 border-bottom align-items-center">
-				  <div style="width: 200px;" class="text-muted">Priority</div>
+                  </div>
 
-				  <!-- VIEW MODE -->
-				  <div id="priority-view"
-				       style="cursor:pointer;"
-				       onclick="enablePriorityEdit()">
+                  <!-- EDIT MODE -->
+                  <div id="priority-edit" class="d-none">
+                    <select id="priority-select"
+                            class="form-select form-select-sm"
+                            th:onchange="savePriority([[${currentTask.id}]])">
 
-				    <!-- If priority exists -->
-				    <span th:if="${currentTask.priority != null}"
-				          class="badge"
-				          th:classappend="${currentTask.priority.name() == 'HIGH'} ? 'bg-danger' :
-				                          (${currentTask.priority.name() == 'MEDIUM'} ? 'bg-warning text-dark' :
-				                          'bg-secondary')"
-				          th:text="${currentTask.priority}">
-				    </span>
+                      <option value="" th:selected="${currentTask.priority == null}">
+                        No Priority
+                      </option>
+                      <option value="HIGH"
+                              th:selected="${currentTask.priority?.name() == 'HIGH'}">High</option>
+                      <option value="MEDIUM"
+                              th:selected="${currentTask.priority?.name() == 'MEDIUM'}">Medium</option>
+                      <option value="LOW"
+                              th:selected="${currentTask.priority?.name() == 'LOW'}">Low</option>
+                    </select>
+                  </div>
+                </div>
 
-				    <!-- If priority is null -->
-				    <span th:if="${currentTask.priority == null}"
-				          class="text-muted">
-				      Select Priority
-				    </span>
+                <!-- Due Date -->
+                <div class="d-flex py-2 border-bottom align-items-center">
+                  <div style="width: 200px;" class="text-muted">Due Date</div>
 
-				  </div>
+                  <!-- VIEW MODE -->
+                  <div id="dueDate-view"
+                       style="cursor:pointer;"
+                       onclick="enableDueDateEdit()">
 
-				  <!-- EDIT MODE -->
-				  <div id="priority-edit" class="d-none">
-				    <select id="priority-select"
-				            class="form-select form-select-sm"
-				            th:onchange="savePriority([[${currentTask.id}]])">
+                    <span th:if="${currentTask.dueDate != null}"
+                          th:text="${#temporals.format(currentTask.dueDate, 'dd MMM yyyy')}">
+                    </span>
 
-				      <option value="HIGH"
-				              th:selected="${currentTask.priority?.name() == 'HIGH'}">High</option>
+                    <span th:if="${currentTask.dueDate == null}"
+                          class="text-muted">
+                      Set due date
+                    </span>
+                  </div>
 
-				      <option value="MEDIUM"
-				              th:selected="${currentTask.priority?.name() == 'MEDIUM'}">Medium</option>
+                  <!-- EDIT MODE -->
+                  <div id="dueDate-edit" class="d-none">
 
-				      <option value="LOW"
-				              th:selected="${currentTask.priority?.name() == 'LOW'}">Low</option>
-				    </select>
-				  </div>
-				</div>
+                    <input type="date"
+                           id="dueDate-input"
+                           class="form-control form-control-sm"
+                           th:value="${currentTask.dueDate}"
+                           th:onchange="saveDueDate([[${currentTask.id}]])">
+                  </div>
+                </div>
 
+                <!-- Start Date -->
+                <div class="d-flex py-2 border-bottom align-items-center">
+                  <div style="width: 200px;" class="text-muted">Start Date</div>
 
-			    <!-- Due Date -->
-				<div class="d-flex py-2 border-bottom align-items-center">
-				  <div style="width: 200px;" class="text-muted">Due Date</div>
+                  <!-- VIEW MODE -->
+                  <div id="startDate-view"
+                       style="cursor:pointer;"
+                       onclick="enableStartDateEdit()">
 
-				  <!-- VIEW MODE -->
-				  <div id="dueDate-view"
-				       style="cursor:pointer;"
-				       onclick="enableDueDateEdit()">
+                    <span th:if="${currentTask.startDate != null}"
+                          th:text="${#temporals.format(currentTask.startDate, 'dd MMM yyyy')}">
+                    </span>
 
-				    <span th:if="${currentTask.dueDate != null}"
-				          th:text="${#temporals.format(currentTask.dueDate, 'dd MMM yyyy')}">
-				    </span>
+                    <span th:if="${currentTask.startDate == null}"
+                          class="text-muted">
+                      Set start date
+                    </span>
+                  </div>
 
-				    <span th:if="${currentTask.dueDate == null}"
-				          class="text-muted">
-				      Set due date
-				    </span>
-				  </div>
+                  <!-- EDIT MODE -->
+                  <div id="startDate-edit" class="d-none">
 
-				  <!-- EDIT MODE -->
-				  <div id="dueDate-edit"
-				       th:classappend="${currentTask.dueDate == null} ? '' : 'd-none'">
+                    <input type="date"
+                           id="startDate-input"
+                           class="form-control form-control-sm"
+                           th:value="${currentTask.startDate}"
+                           th:onchange="saveStartDate([[${currentTask.id}]])">
+                  </div>
+                </div>
 
-				    <input type="date"
-				           id="dueDate-input"
-				           class="form-control form-control-sm"
-				           th:value="${currentTask.dueDate}"
-				           th:onchange="saveDueDate([[${currentTask.id}]])">
-				  </div>
-				</div>
+                <!-- Original Estimate -->
+                <div class="d-flex py-2 align-items-center">
+                  <div style="width: 200px;" class="text-muted">Original Estimate</div>
 
-			    <!-- Start Date -->
-				<div class="d-flex py-2 border-bottom align-items-center">
-				  <div style="width: 200px;" class="text-muted">Start Date</div>
+                  <!-- VIEW MODE -->
+                  <div id="estimate-view"
+                       style="cursor:pointer;"
+                       onclick="enableEstimateEdit()">
 
-				  <!-- VIEW MODE -->
-				  <div id="startDate-view"
-				       style="cursor:pointer;"
-				       onclick="enableStartDateEdit()">
+                    <span th:if="${currentTask.originalEstimateMinutes != null}"
+                          th:text="|${currentTask.originalEstimateMinutes / 60}h 
+                                   ${currentTask.originalEstimateMinutes % 60}m|">
+                    </span>
 
-				    <span th:if="${currentTask.startDate != null}"
-				          th:text="${#temporals.format(currentTask.startDate, 'dd MMM yyyy')}">
-				    </span>
+                    <span th:if="${currentTask.originalEstimateMinutes == null}"
+                          class="text-muted">
+                      Set estimate
+                    </span>
+                  </div>
 
-				    <span th:if="${currentTask.startDate == null}"
-				          class="text-muted">
-				      Set start date
-				    </span>
-				  </div>
+                  <!-- EDIT MODE -->
+                  <div id="estimate-edit" class="d-none">
 
-				  <!-- EDIT MODE -->
-				  <div id="startDate-edit"
-				       th:classappend="${currentTask.startDate == null} ? '' : 'd-none'">
+                    <input type="text"
+                           id="estimate-input"
+                           class="form-control form-control-sm"
+                           placeholder="e.g. 2h 30m, 90m, 1.5h"
+                           th:value="${currentTask.originalEstimateMinutes != null ?
+                                     (currentTask.originalEstimateMinutes / 60) + 'h ' +
+                                     (currentTask.originalEstimateMinutes % 60) + 'm' : ''}"
+                           th:onchange="saveEstimate([[${currentTask.id}]])">
+                  </div>
 
-				    <input type="date"
-				           id="startDate-input"
-				           class="form-control form-control-sm"
-				           th:value="${currentTask.startDate}"
-				           th:onchange="saveStartDate([[${currentTask.id}]])">
-				  </div>
-				</div>
+                </div>
 
-			    <!-- Original Estimate -->
-				<!-- Original Estimate -->
-				<div class="d-flex py-2 align-items-center">
-				  <div style="width: 200px;" class="text-muted">Original Estimate</div>
+              </div>
 
-				  <!-- VIEW MODE -->
-				  <div id="estimate-view"
-				       style="cursor:pointer;"
-				       onclick="enableEstimateEdit()">
+            </div>
+          </div>
+        </div>
+      </div>
 
-					   <span th:if="${currentTask.originalEstimateMinutes != null}"
-					         th:text="|${currentTask.originalEstimateMinutes / 60}h 
-					                  ${currentTask.originalEstimateMinutes % 60}m|">
-					   </span>
+      <!-- SUBTASKS -->
+      <div th:if="${childTasks != null && !childTasks.isEmpty()}" class="mt-4">
+        <div class="card mb-4">
+          <div class="card-header bg-light fw-semibold">
+            Subtasks
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Assignee</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="task : ${childTasks}">
+                  <td th:text="${task.id}"></td>
+                  <td>
+                    <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
+                          projectId=${project.id},
+                          taskId=${task.id})}"
+                       th:text="${task.title}">
+                    </a>
+                  </td>
+                  <td th:text="${task.assignee != null 
+                        ? task.assignee.firstName + ' ' + task.assignee.lastName 
+                        : 'Unassigned'}">
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary"
+                          th:text="${task.status}">
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
+      <!-- COMMENTS - COLLAPSIBLE -->
+      <div class="accordion mt-3" id="commentsAccordion">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button fw-semibold" 
+                    type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#commentsCollapse"
+                    aria-expanded="true">
+              Comments
+            </button>
+          </h3>
+          <div id="commentsCollapse" 
+               class="accordion-collapse collapse show" 
+               data-bs-parent="#commentsAccordion">
+            <div class="accordion-body">
+              
+              <!-- Existing Comments -->
+              <div id="comments-container">
+                <div th:each="comment : ${comments}"
+                     class="border rounded p-2 mb-2">
 
-				    <span th:if="${currentTask.originalEstimateMinutes == null}"
-				          class="text-muted">
-				      Set estimate
-				    </span>
-				  </div>
+                  <small class="text-muted"
+                         th:text="${comment.author.firstName + ' ' + comment.author.lastName}">
+                  </small>
 
-				  <!-- EDIT MODE -->
-				  <!-- EDIT MODE -->
-				  <div id="estimate-edit"
-				       th:classappend="${currentTask.originalEstimateMinutes == null} ? '' : 'd-none'">
+                  <!-- VIEW MODE -->
+                  <div th:id="'comment-view-' + ${comment.id}"
+                       th:text="${comment.content}"
+                       style="cursor:pointer;"
+                       th:onclick="'enableCommentEdit(' + ${comment.id} + ')'">
+                  </div>
 
-				    <input type="text"
-				           id="estimate-input"
-				           class="form-control form-control-sm"
-				           placeholder="e.g. 2h 30m, 90m, 1.5h"
-				           th:value="${currentTask.originalEstimateMinutes != null ?
-				                      (currentTask.originalEstimateMinutes / 60) + 'h ' +
-				                      (currentTask.originalEstimateMinutes % 60) + 'm' : ''}"
-				           th:onchange="saveEstimate([[${currentTask.id}]])">
-				  </div>
+                  <!-- EDIT MODE -->
+                  <div th:id="'comment-edit-' + ${comment.id}"
+                       class="d-none">
 
-				</div>
+                    <textarea class="form-control mb-2"
+                              th:id="'comment-textarea-' + ${comment.id}"
+                              th:text="${comment.content}">
+                    </textarea>
 
+                    <button class="btn btn-sm btn-primary"
+                            th:onclick="'saveComment(' + ${comment.id} + ')'">
+                      Save
+                    </button>
 
-			  </div>
+                    <button class="btn btn-sm btn-secondary"
+                            th:onclick="'cancelCommentEdit(' + ${comment.id} + ')'">
+                      Cancel
+                    </button>
 
+                    <!-- Delete only if logged in user is author -->
+                    <button class="btn btn-sm btn-danger"
+                            th:if="${comment.author.email == #authentication.principal.username}"
+                            th:onclick="'deleteComment(' + ${comment.id} + ')'">
+                      Delete
+                    </button>
+                  </div>
 
-		    </div>
-		  </div>
+                </div>
+              </div>
 
+              <!-- Add Comment -->
+              <textarea id="new-comment"
+                        class="form-control mb-2"
+                        rows="3"
+                        placeholder="Add a comment..."></textarea>
 
-	      <!-- SUBTASKS -->
-	      <div th:if="${childTasks != null && !childTasks.isEmpty()}">
-	        <div class="card mb-4">
-	          <div class="card-header bg-light fw-semibold">
-	            Subtasks
-	          </div>
-	          <div class="card-body p-0">
-	            <table class="table table-hover mb-0">
-	              <thead class="table-light">
-	                <tr>
-	                  <th>ID</th>
-	                  <th>Title</th>
-	                  <th>Assignee</th>
-	                  <th>Status</th>
-	                </tr>
-	              </thead>
-	              <tbody>
-	                <tr th:each="task : ${childTasks}">
-	                  <td th:text="${task.id}"></td>
-	                  <td>
-	                    <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
-	                          projectId=${project.id},
-	                          taskId=${task.id})}"
-	                       th:text="${task.title}">
-	                    </a>
-	                  </td>
-	                  <td th:text="${task.assignee != null 
-	                        ? task.assignee.firstName + ' ' + task.assignee.lastName 
-	                        : 'Unassigned'}">
-	                  </td>
-	                  <td>
-	                    <span class="badge bg-secondary"
-	                          th:text="${task.status}">
-	                    </span>
-	                  </td>
-	                </tr>
-	              </tbody>
-	            </table>
-	          </div>
-	        </div>
-	      </div>
+              <button class="btn btn-primary btn-sm"
+                      th:onclick="'addComment(' + ${currentTask.id} + ')'">
+                Add Comment
+              </button>
 
-	      <!-- COMMENTS SECTION -->
-		  <div class="card">
-		    <div class="card-header bg-light fw-semibold">
-		      Comments
-		    </div>
-		    <div class="card-body">
+            </div>
+          </div>
+        </div>
+      </div>
 
-		      <!-- Existing Comments -->
-		      <div id="comments-container">
-		        <div th:each="comment : ${comments}"
-		             class="border rounded p-2 mb-2">
+    </div>
 
-		          <small class="text-muted"
-		                 th:text="${comment.author.firstName + ' ' + comment.author.lastName}">
-		          </small>
+    <!-- ========================= -->
+    <!-- ===== RIGHT DRAWER ====== -->
+    <!-- ========================= -->
+    <div class="col-lg-4">
+      <!-- Right drawer content remains exactly the same -->
+      <div class="card mb-3">
+        <div class="card-body">
 
-		          <!-- VIEW MODE -->
-		          <div th:id="'comment-view-' + ${comment.id}"
-		               th:text="${comment.content}"
-		               style="cursor:pointer;"
-		               th:onclick="'enableCommentEdit(' + ${comment.id} + ')'">
-		          </div>
+          <!-- STATUS DROPDOWN (static for now) -->
+		  <div class="mb-4">
+		    <label class="fw-semibold mb-2">Status</label>
 
-		          <!-- EDIT MODE -->
-		          <div th:id="'comment-edit-' + ${comment.id}"
-		               class="d-none">
+		    <div class="dropdown">
 
-		            <textarea class="form-control mb-2"
-		                      th:id="'comment-textarea-' + ${comment.id}"
-		                      th:text="${comment.content}">
-		            </textarea>
+		      <button id="statusButton"
+		              class="btn dropdown-toggle w-100"
+		              type="button"
+		              data-bs-toggle="dropdown"
+		              th:classappend="${currentTask.status== 'DONE'} ? ' btn-success' :
+		                              (${currentTask.status == 'IN_PROGRESS'} ? ' btn-primary' :
+		                              ' btn-secondary')">
 
-		            <button class="btn btn-sm btn-primary"
-		                    th:onclick="'saveComment(' + ${comment.id} + ')'">
-		              Save
-		            </button>
+		        <span id="statusText"
+		              th:text="${currentTask.status}">
+		        </span>
 
-		            <button class="btn btn-sm btn-secondary"
-		                    th:onclick="'cancelCommentEdit(' + ${comment.id} + ')'">
-		              Cancel
-		            </button>
-
-		            <!-- Delete only if logged in user is author -->
-		            <button class="btn btn-sm btn-danger"
-		                    th:if="${comment.author.email == #authentication.principal.username}"
-		                    th:onclick="'deleteComment(' + ${comment.id} + ')'">
-		              Delete
-		            </button>
-		          </div>
-
-		        </div>
-		      </div>
-
-		      <!-- Add Comment -->
-		      <textarea id="new-comment"
-		                class="form-control mb-2"
-		                rows="3"
-		                placeholder="Add a comment..."></textarea>
-
-		      <button class="btn btn-primary btn-sm"
-		              th:onclick="'addComment(' + ${currentTask.id} + ')'">
-		        Add Comment
 		      </button>
 
+		      <ul class="dropdown-menu w-100">
+		        <li>
+		          <a class="dropdown-item"
+		             href="#"
+		             onclick="updateStatus('TO_DO')">
+		            To Do
+		          </a>
+		        </li>
+
+		        <li>
+		          <a class="dropdown-item"
+		             href="#"
+		             onclick="updateStatus('IN_PROGRESS')">
+		            In Progress
+		          </a>
+		        </li>
+
+		        <li>
+		          <a class="dropdown-item"
+		             href="#"
+		             onclick="updateStatus('DONE')">
+		            Done
+		          </a>
+		        </li>
+		      </ul>
+
 		    </div>
 		  </div>
 
+          <!-- DETAILS DROPDOWN -->
+          <div class="accordion" id="detailsAccordion">
+            <div class="accordion-item">
+              <h2 class="accordion-header">
+                <button class="accordion-button"
+                        type="button"
+                        data-bs-toggle="collapse"
+                        data-bs-target="#detailsCollapse">
+                  Details
+                </button>
+              </h2>
+              <div id="detailsCollapse"
+                   class="accordion-collapse collapse show"
+                   data-bs-parent="#detailsAccordion">
+                <div class="accordion-body small">
 
-	    </div>
+                  <p>
+                    <strong>Assignee:</strong><br>
+                    <span th:text="${currentTask.assignee != null 
+                      ? currentTask.assignee.firstName + ' ' + currentTask.assignee.lastName 
+                      : 'Unassigned'}">
+                    </span>
+                  </p>
 
+                  <p>
+                    <strong>Reporter:</strong><br>
+                    <span>System</span>
+                  </p>
 
-	    <!-- ========================= -->
-	    <!-- ===== RIGHT DRAWER ====== -->
-	    <!-- ========================= -->
-	    <div class="col-lg-4">
+                  <p>
+                    <strong>Time Tracking:</strong><br>
+                    No time logged
+                  </p>
 
-	      <div class="card mb-3">
-	        <div class="card-body">
+                  <p>
+                    <strong>Labels:</strong><br>
+                    <span class="badge bg-secondary">backend</span>
+                    <span class="badge bg-secondary">api</span>
+                  </p>
 
-	          <!-- STATUS DROPDOWN (static for now) -->
-	          <div class="mb-4">
-	            <label class="fw-semibold mb-2">Status</label>
-	            <div class="dropdown">
-	              <button class="btn btn-success dropdown-toggle w-100"
-	                      type="button"
-	                      data-bs-toggle="dropdown">
-	                <span th:text="${currentTask.status}">In Progress</span>
-	              </button>
-	              <ul class="dropdown-menu w-100">
-	                <li><a class="dropdown-item" href="#">To Do</a></li>
-	                <li><a class="dropdown-item" href="#">In Progress</a></li>
-	                <li><a class="dropdown-item" href="#">Done</a></li>
-	              </ul>
-	            </div>
-	          </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-	          <!-- DETAILS DROPDOWN -->
-	          <div class="accordion" id="detailsAccordion">
-	            <div class="accordion-item">
-	              <h2 class="accordion-header">
-	                <button class="accordion-button"
-	                        type="button"
-	                        data-bs-toggle="collapse"
-	                        data-bs-target="#detailsCollapse">
-	                  Details
-	                </button>
-	              </h2>
-	              <div id="detailsCollapse"
-	                   class="accordion-collapse collapse show"
-	                   data-bs-parent="#detailsAccordion">
-	                <div class="accordion-body small">
+        </div>
+      </div>
+    </div>
 
-	                  <p>
-	                    <strong>Assignee:</strong><br>
-	                    <span th:text="${currentTask.assignee != null 
-	                      ? currentTask.assignee.firstName + ' ' + currentTask.assignee.lastName 
-	                      : 'Unassigned'}">
-	                    </span>
-	                  </p>
+  </div>
 
-	                  <p>
-	                    <strong>Reporter:</strong><br>
-	                    <span>System</span>
-	                  </p>
-
-	                  <p>
-	                    <strong>Time Tracking:</strong><br>
-	                    No time logged
-	                  </p>
-
-	                  <p>
-	                    <strong>Labels:</strong><br>
-	                    <span class="badge bg-secondary">backend</span>
-	                    <span class="badge bg-secondary">api</span>
-	                  </p>
-
-	                </div>
-	              </div>
-	            </div>
-	          </div>
-
-	        </div>
-	      </div>
-
-	    </div>
-
-	  </div>
-
-	</main>
+</main>
 
   </div>
 </div>
@@ -582,8 +627,8 @@
 
 	function savePriority(taskId) {
 
-	  const newPriority =
-	      document.getElementById("priority-select").value;
+	  const select = document.getElementById("priority-select");
+	  const newPriority = select.value || null;
 
 	  fetch(`/projects/${projectId}/tasks/${taskId}/priority`, {
 	    method: "PATCH",
@@ -596,7 +641,30 @@
 	  })
 	  .then(response => {
 	    if (response.ok) {
-	      location.reload(); // simplest for now
+
+	      const view = document.getElementById("priority-view");
+
+	      if (!newPriority) {
+	        view.innerHTML = '<span class="text-muted">Select Priority</span>';
+	      } else {
+
+	        let badgeClass = "bg-secondary";
+
+	        if (newPriority === "HIGH") {
+	          badgeClass = "bg-danger";
+	        } else if (newPriority === "MEDIUM") {
+	          badgeClass = "bg-warning text-dark";
+	        }
+
+	        view.innerHTML =
+	          `<span class="badge ${badgeClass}">
+	              ${newPriority}
+	           </span>`;
+	      }
+
+	      document.getElementById("priority-edit").classList.add("d-none");
+	      view.classList.remove("d-none");
+
 	    } else {
 	      alert("Failed to update priority");
 	    }
@@ -606,7 +674,13 @@
 <script>
 	function enableDueDateEdit() {
 	  document.getElementById("dueDate-view").classList.add("d-none");
-	  document.getElementById("dueDate-edit").classList.remove("d-none");
+
+	  const edit = document.getElementById("dueDate-edit");
+	  edit.classList.remove("d-none");
+
+	  const input = document.getElementById("dueDate-input");
+	  input.focus();
+	  if (input.showPicker) input.showPicker();
 	}
 
 	function saveDueDate(taskId) {
@@ -652,7 +726,13 @@
 
 	function enableStartDateEdit() {
 	  document.getElementById("startDate-view").classList.add("d-none");
-	  document.getElementById("startDate-edit").classList.remove("d-none");
+
+	  const edit = document.getElementById("startDate-edit");
+	  edit.classList.remove("d-none");
+
+	  const input = document.getElementById("startDate-input");
+	  input.focus();
+	  if (input.showPicker) input.showPicker();
 	}
 
 	function saveStartDate(taskId) {
@@ -727,6 +807,77 @@
 	}
 
 
+</script>
+<script>
+document.addEventListener("click", function (event) {
+
+  function handleOutside(viewId, editId) {
+    const view = document.getElementById(viewId);
+    const edit = document.getElementById(editId);
+
+    if (!view || !edit) return;
+
+    if (!edit.classList.contains("d-none")) {
+      if (!edit.contains(event.target) &&
+          !view.contains(event.target)) {
+
+        edit.classList.add("d-none");
+        view.classList.remove("d-none");
+      }
+    }
+  }
+
+  handleOutside("priority-view", "priority-edit");
+  handleOutside("dueDate-view", "dueDate-edit");
+  handleOutside("startDate-view", "startDate-edit");
+  handleOutside("estimate-view", "estimate-edit");
+
+});
+</script>
+<script>
+function updateStatus(newStatus) {
+
+  fetch(`/projects/${projectId}/tasks/${taskId}/status`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      status: newStatus
+    })
+  })
+  .then(response => {
+    if (response.ok) {
+
+      const button = document.getElementById("statusButton");
+      const text = document.getElementById("statusText");
+
+      text.innerText = formatStatus(newStatus);
+
+      // remove old color classes
+      button.classList.remove("btn-success", "btn-primary", "btn-secondary");
+
+      // apply new color
+      if (newStatus === "DONE") {
+        button.classList.add("btn-success");
+      } else if (newStatus === "IN_PROGRESS") {
+        button.classList.add("btn-primary");
+      } else {
+        button.classList.add("btn-secondary");
+      }
+
+    } else {
+      alert("Failed to update status");
+    }
+  });
+}
+
+function formatStatus(status) {
+  if (status === "IN_PROGRESS") return "In Progress";
+  if (status === "TO_DO") return "To Do";
+  if (status === "DONE") return "Done";
+  return status;
+}
 </script>
 </body>
 </html>

@@ -197,6 +197,16 @@ public class TaskController {
         return ResponseEntity.ok().build();
     }
 
+    @PatchMapping("/{taskId}/status")
+    @ResponseBody
+    public ResponseEntity<?> updateStatus(@PathVariable Long taskId,
+                                            @RequestBody Map<String, String> payload) {
 
+        String statusValue = payload.get("status");
+
+        taskService.updateStatus(taskId, statusValue);
+
+        return ResponseEntity.ok().build();
+    }
 
 }
