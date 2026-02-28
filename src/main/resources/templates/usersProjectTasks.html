@@ -8,6 +8,7 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link href="/css/sidebar.css" rel="stylesheet">
 </head>
 <body>
@@ -19,29 +20,28 @@
   <div class="row">
 
     <!-- Sidebar -->
-    <div th:replace="~{fragments/commonSidebar}"></div>
+	<div th:replace="~{fragments/commonSidebar}"></div>
 
     <!-- Main Content -->
-    <main class="col-lg-10 ms-auto p-4" style="background: #f0f2f5; min-height: 100vh;">
+    <main id="mainContent" class="col-lg-10 ms-auto p-4" style="background: #f0f2f5; min-height: 100vh;">
 		<div class="d-flex justify-content-between align-items-center mb-3">
 		  <h2 class="text-primary fw-bold"
 		      th:text="${project.name} + ' - Tasks'">Project Tasks</h2>
 
-		  <button class="btn btn-primary"
-		          data-bs-toggle="modal"
-		          data-bs-target="#createTaskModal">
-		    + Create
-		  </button>
+			  <button class="btn btn-primary"
+			          onclick="openCreatePanel()">
+			    + Create
+			  </button>
 		</div>
 
         <!-- TASK LIST -->
-		<table class="table table-bordered table-hover">
+		<table class="task-table table table-bordered table-hover">
 		  <thead class="table-dark">
 		    <tr>
 		      <th>#</th>
 		      <th>Title</th>
 		      <th>Assignee</th>
-		      <th>Due Date</th>
+		      <!--<th>Due Date</th>-->
 		      <th>Status</th>
 		      <th>Type</th>
 		      <th>Actions</th>
@@ -55,10 +55,36 @@
 		           th:text="${task.title}"></a>
 		      </td>
 		      <td th:text="${task.assignee != null ? task.assignee.firstName + ' ' + task.assignee.lastName : 'Unassigned'}"></td>
-		      <td th:text="${task.dueDate}"></td>
-		      <td th:text="${task.status}"
-		          th:class="${(task.status == 'COMPLETED') ? 'text-success' : (task.status == 'IN_PROGRESS') ? 'text-primary' : 'text-warning'}">
-		      </td>
+		      <!--<td th:text="${task.dueDate}"></td>-->
+			  <td>
+
+			    <!-- VIEW MODE -->
+			    <span th:id="'status-view-' + ${task.id}"
+			          th:classappend="${task.status == 'COMPLETED'} ? 'badge bg-success' :
+			                          (${task.status == 'IN_PROGRESS'} ? 'badge bg-primary' :
+			                          'badge bg-secondary')"
+			          th:text="${task.status}"
+			          style="cursor:pointer;"
+			          th:onclick="'enableStatusEdit(' + ${task.id} + ')'">
+			    </span>
+
+			    <!-- EDIT MODE -->
+			    <select th:id="'status-edit-' + ${task.id}"
+			            class="form-select form-select-sm d-none"
+			            th:onchange="'updateTaskStatus(' + ${task.id} + ', this.value)'">
+
+			      <option value="PENDING"
+			              th:selected="${task.status == 'PENDING'}">Pending</option>
+
+			      <option value="IN_PROGRESS"
+			              th:selected="${task.status == 'IN_PROGRESS'}">In Progress</option>
+
+			      <option value="COMPLETED"
+			              th:selected="${task.status == 'COMPLETED'}">Completed</option>
+
+			    </select>
+
+			  </td>
 		      <td th:text="${task.taskType}"></td>
 		      <td>
 		        <button class="btn btn-sm btn-primary"
@@ -72,84 +98,147 @@
 
 
     </main>
+	<div id="createPanel"
+	     class="col-lg-4 border-start bg-white d-none"
+	     style="min-height:100vh;">
+
+	  <div class="p-4">
+
+	    <div class="d-flex justify-content-between align-items-center mb-4">
+	      <h5 class="fw-semibold mb-0">Create Task</h5>
+	      <button class="btn-close"
+	              onclick="closeCreatePanel()">
+	      </button>
+	    </div>
+
+		<form th:action="@{/projects/{projectId}/tasks/save(projectId=${project.id})}"
+		      method="post"
+		      th:object="${newTask}">
+
+		  <!-- Task Type -->
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Task Type</label>
+		    <select class="form-select"
+		            th:field="*{taskType}"
+		            required>
+		      <option value="">Select Type</option>
+		      <option value="EPIC">Epic</option>
+		      <option value="STORY">Story</option>
+		      <option value="TASK">Task</option>
+		      <option value="SUB_TASK">Sub-task</option>
+		    </select>
+		  </div>
+
+		  <!-- Parent -->
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Parent Task</label>
+		    <select class="form-select"
+		            name="parentTaskId">
+		      <option value="">No Parent</option>
+		      <option th:each="task : ${taskList}"
+		              th:value="${task.id}"
+		              th:text="${task.title}">
+		      </option>
+		    </select>
+		  </div>
+
+		  <!-- Title -->
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Title</label>
+		    <input type="text"
+		           class="form-control"
+		           th:field="*{title}"
+		           required>
+		  </div>
+
+		  <!-- Description -->
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Description</label>
+		    <textarea class="form-control"
+		              rows="3"
+		              th:field="*{description}">
+		    </textarea>
+		  </div>
+
+		  <div class="row">
+		    <div class="col-md-6 mb-3">
+		      <label class="form-label fw-semibold">Priority</label>
+		      <select class="form-select"
+		              th:field="*{priority}">
+		        <option value="">Select Priority</option>
+		        <option value="HIGH">High</option>
+		        <option value="MEDIUM">Medium</option>
+		        <option value="LOW">Low</option>
+		      </select>
+		    </div>
+
+		    <div class="col-md-6 mb-3">
+		      <label class="form-label fw-semibold">Status</label>
+		      <select class="form-select"
+		              th:field="*{status}">
+		        <option value="PENDING">Pending</option>
+		        <option value="IN_PROGRESS">In Progress</option>
+		        <option value="COMPLETED">Completed</option>
+		      </select>
+		    </div>
+		  </div>
+
+		  <div class="row">
+		    <div class="col-md-6 mb-3">
+		      <label class="form-label fw-semibold">Start Date</label>
+		      <input type="date"
+		             class="form-control"
+		             th:field="*{startDate}">
+		    </div>
+
+		    <div class="col-md-6 mb-3">
+		      <label class="form-label fw-semibold">Due Date</label>
+		      <input type="date"
+		             class="form-control"
+		             th:field="*{dueDate}">
+		    </div>
+		  </div>
+
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Original Estimate</label>
+		    <input type="text"
+		           class="form-control"
+		           name="estimateInput"
+		           placeholder="e.g. 2h 30m">
+		  </div>
+
+		  <div class="mb-3">
+		    <label class="form-label fw-semibold">Assignee</label>
+		    <select class="form-select"
+		            th:field="*{assignee.id}">
+		      <option value="">Select Assignee</option>
+		      <option th:each="user : ${projectUsers}"
+		              th:value="${user.userId}"
+		              th:text="${user.name}">
+		      </option>
+		    </select>
+		  </div>
+
+		  <div class="d-flex justify-content-end gap-2 mt-4">
+		    <button type="button"
+		            class="btn btn-outline-secondary"
+		            onclick="closeCreatePanel()">
+		      Cancel
+		    </button>
+		    <button type="submit"
+		            class="btn btn-success">
+		      Create
+		    </button>
+		  </div>
+
+		</form>
+
+
+	  </div>
+	</div>
   </div>
 </div>
 
-<!--CREATE TASK MODAL-->
-<div class="modal fade" id="createTaskModal">
-  <div class="modal-dialog">
-    <div class="modal-content">
-
-      <form th:action="@{/projects/{projectId}/tasks/save(projectId=${project.id})}"
-            method="post"
-            th:object="${newTask}">
-
-        <div class="modal-header">
-          <h5 class="modal-title">Create Task</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-
-        <div class="modal-body">
-
-			<select class="form-select mb-2"
-			        th:field="*{taskType}"
-			        required>
-			  <option th:value="EPIC">Epic</option>
-			  <option th:value="STORY">Story</option>
-			  <option th:value="TASK">Task</option>
-			  <option th:value="SUB_TASK">Sub-task</option>
-			</select>
-			
-			<select class="form-select mb-2"
-			        name="parentTaskId"
-			        id="parentTaskSelect">
-			  <option value="">No Parent</option>
-			  <option th:each="task : ${taskList}"
-			          th:value="${task.id}"
-			          th:text="${task.title}">
-			  </option>
-			</select>
-			
-          <input class="form-control mb-2"
-                 th:field="*{title}"
-                 placeholder="Task title"
-                 required>
-
-          <input type="date"
-                 class="form-control mb-2"
-                 th:field="*{dueDate}"
-                 required>
-
-          <select class="form-select mb-2"
-                  th:field="*{assignee.id}"
-                  required>
-            <option value="">Select Assignee</option>
-            <option th:each="user : ${projectUsers}"
-                    th:value="${user.userId}"
-                    th:text="${user.name}">
-            </option>
-          </select>
-
-          <select class="form-select"
-                  th:field="*{status}"
-                  required>
-            <option value="PENDING">PENDING</option>
-            <option value="IN_PROGRESS">IN_PROGRESS</option>
-            <option value="COMPLETED">COMPLETED</option>
-          </select>
-
-        </div>
-
-        <div class="modal-footer">
-          <button class="btn btn-secondary"
-                  data-bs-dismiss="modal">Cancel</button>
-          <button class="btn btn-success">Create</button>
-        </div>
-
-      </form>
-    </div>
-  </div>
-</div>
 
 <!-- EDIT TASK MODAL -->
 <div class="modal fade" id="editTaskModal">
@@ -222,7 +311,136 @@ taskTypeSelect.addEventListener('change', () => {
   }
 });
 </script>
+<script>
+function openCreatePanel() {
 
+  const panel = document.getElementById("createPanel");
+  const main = document.getElementById("mainContent");
 
+  panel.classList.remove("d-none");
+
+  main.classList.remove("col-lg-10");
+  main.classList.add("col-lg-6");
+}
+
+function closeCreatePanel() {
+
+  const panel = document.getElementById("createPanel");
+  const main = document.getElementById("mainContent");
+
+  panel.classList.add("d-none");
+
+  main.classList.remove("col-lg-6");
+  main.classList.add("col-lg-10");
+}
+</script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script>
+$(document).ready(function () {
+  $('.task-table').DataTable({
+    paging: false,        // ❌ Remove pagination
+    info: false,          // ❌ Remove "Showing X of Y"
+    lengthChange: false,  // ❌ Remove entries dropdown
+    ordering: false,      // ❌ Remove column sorting
+    searching: true,      // ✅ Keep search
+    dom: 'f'              // ✅ Only show filter (search box)
+  });
+});
+</script>
+<script th:inline="javascript">
+
+var projectId = /*[[${project.id}]]*/ 0;
+let activeStatusEditor = null;
+
+function enableStatusEdit(taskId) {
+
+  // Close previous if open
+  if (activeStatusEditor && activeStatusEditor !== taskId) {
+    closeStatusEdit(activeStatusEditor);
+  }
+
+  activeStatusEditor = taskId;
+
+  document.getElementById("status-view-" + taskId)
+          .classList.add("d-none");
+
+  const select = document.getElementById("status-edit-" + taskId);
+  select.classList.remove("d-none");
+  select.focus();
+}
+
+function closeStatusEdit(taskId) {
+
+  const view = document.getElementById("status-view-" + taskId);
+  const select = document.getElementById("status-edit-" + taskId);
+
+  if (!view || !select) return;
+
+  select.classList.add("d-none");
+  view.classList.remove("d-none");
+
+  activeStatusEditor = null;
+}
+
+function updateTaskStatus(taskId, newStatus) {
+
+  fetch(`/projects/${projectId}/tasks/${taskId}/status`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ status: newStatus })
+  })
+  .then(response => {
+    if (response.ok) {
+
+      const view = document.getElementById("status-view-" + taskId);
+      const select = document.getElementById("status-edit-" + taskId);
+
+      view.innerText = formatStatus(newStatus);
+
+      view.classList.remove("bg-success", "bg-primary", "bg-secondary");
+
+      if (newStatus === "COMPLETED") {
+        view.classList.add("badge", "bg-success");
+      } else if (newStatus === "IN_PROGRESS") {
+        view.classList.add("badge", "bg-primary");
+      } else {
+        view.classList.add("badge", "bg-secondary");
+      }
+
+      select.classList.add("d-none");
+      view.classList.remove("d-none");
+
+    } else {
+      alert("Failed to update status");
+    }
+  });
+}
+
+function formatStatus(status) {
+  if (status === "IN_PROGRESS") return "In Progress";
+  if (status === "PENDING") return "Pending";
+  if (status === "COMPLETED") return "Completed";
+  return status;
+}
+
+document.addEventListener("click", function (event) {
+
+  if (!activeStatusEditor) return;
+
+  const view = document.getElementById("status-view-" + activeStatusEditor);
+  const select = document.getElementById("status-edit-" + activeStatusEditor);
+
+  if (!select || !view) return;
+
+  // If click is NOT inside select or badge
+  if (!select.contains(event.target) &&
+      !view.contains(event.target)) {
+
+    closeStatusEdit(activeStatusEditor);
+  }
+});
+
+</script>
 </body>
 </html>
