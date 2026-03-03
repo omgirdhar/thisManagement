@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.application.management.dto.ProjectUserDTO;
+import com.application.management.dto.TaskEditDTO;
 import com.application.management.model.Comment;
 import com.application.management.model.Project;
 import com.application.management.model.Task;
@@ -27,6 +28,8 @@ import com.application.management.model.User;
 import com.application.management.service.CommentService;
 import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
+import com.application.management.service.UserService;
+import com.application.management.utils.TimeFormatUtils;
 import com.application.management.utils.Enums.TaskType;
 
 
@@ -37,11 +40,13 @@ public class TaskController {
     private final ProjectService projectService;
     private final TaskService taskService;
     private final CommentService commentService;
+    private final UserService userService;
 
-    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService) {
+    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.commentService = commentService;
+		this.userService = userService;
     }
 
     @GetMapping
@@ -79,17 +84,50 @@ public class TaskController {
 
     @PostMapping("/update")
     public String updateTask(@PathVariable Long projectId,
-                             @ModelAttribute Task task) {
+                             @ModelAttribute Task taskForm,
+                             @RequestParam(required = false) Long parentTaskId,
+                             @RequestParam(required = false) String estimateInput) {
 
-        System.out.println("====== UPDATE TASK ======");
-        System.out.println("ID: " + task.getId());
-        System.out.println("Type: " + task.getTaskType());
-        System.out.println("Title: " + task.getTitle());
-        System.out.println("=========================");
+        Task existingTask = taskService.getTaskById(taskForm.getId());
+
+        existingTask.setTitle(taskForm.getTitle());
+        existingTask.setDescription(taskForm.getDescription());
+        existingTask.setStatus(taskForm.getStatus());
+        existingTask.setStartDate(taskForm.getStartDate());
+        existingTask.setDueDate(taskForm.getDueDate());
+        existingTask.setTaskType(taskForm.getTaskType());
+        existingTask.setPriority(taskForm.getPriority());
+
+        int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateInput);
+        existingTask.setOriginalEstimateMinutes(totalMinutes);
+	    
+        if (taskForm.getAssignee() != null && taskForm.getAssignee().getId() != null) {
+            User managedUser = userService.getUserById(taskForm.getAssignee().getId());
+            existingTask.setAssignee(managedUser);
+        } else {
+            existingTask.setAssignee(null);
+        }
+
+        if (parentTaskId != null) {
+            Task parent = taskService.getTaskById(parentTaskId);
+            existingTask.setParentTask(parent);
+        } else {
+            existingTask.setParentTask(null);
+        }
+
+        taskService.saveTask(existingTask);
 
         return "redirect:/projects/" + projectId + "/tasks";
     }
+    
+    @GetMapping("/{taskId}")
+    @ResponseBody
+    public ResponseEntity<TaskEditDTO> getTask(@PathVariable Long projectId,
+                                               @PathVariable Long taskId) {
 
+        Task task = taskService.getTaskById(taskId);
+        return ResponseEntity.ok(new TaskEditDTO(task));
+    }
 
     // Dummy delete
     @GetMapping("/delete/{taskId}")

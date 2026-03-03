@@ -8,6 +8,7 @@ import java.util.regex.Pattern;
 import com.application.management.repo.TaskRepository;
 import com.application.management.utils.Enums.Priority;
 import com.application.management.utils.Enums.TaskType;
+import com.application.management.utils.TimeFormatUtils;
 
 import jakarta.transaction.Transactional;
 
@@ -118,45 +119,10 @@ public class TaskServiceImpl implements TaskService{
 	        return;
 	    }
 
-	    int totalMinutes = parseEstimateToMinutes(estimateValue);
+	    int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateValue);
 
 	    task.setOriginalEstimateMinutes(totalMinutes);
 	    taskRepository.save(task);
-	}
-
-	private int parseEstimateToMinutes(String input) {
-
-	    input = input.trim().toLowerCase();
-
-	    int totalMinutes = 0;
-
-	    // Match hours (supports decimals)
-	    Pattern hourPattern = Pattern.compile("(\\d+(\\.\\d+)?)h");
-	    Matcher hourMatcher = hourPattern.matcher(input);
-
-	    if (hourMatcher.find()) {
-	        double hours = Double.parseDouble(hourMatcher.group(1));
-	        totalMinutes += (int) Math.round(hours * 60);
-	    }
-
-	    // Match minutes
-	    Pattern minutePattern = Pattern.compile("(\\d+)m");
-	    Matcher minuteMatcher = minutePattern.matcher(input);
-
-	    if (minuteMatcher.find()) {
-	        totalMinutes += Integer.parseInt(minuteMatcher.group(1));
-	    }
-
-	    // If pure number (no h/m), treat as minutes
-	    if (!input.contains("h") && !input.contains("m")) {
-	        totalMinutes += Integer.parseInt(input);
-	    }
-
-	    if (totalMinutes < 0) {
-	        throw new IllegalArgumentException("Estimate cannot be negative");
-	    }
-
-	    return totalMinutes;
 	}
 
 	@Override
