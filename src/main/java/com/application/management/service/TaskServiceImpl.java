@@ -33,7 +33,7 @@ public class TaskServiceImpl implements TaskService{
 	@Override
 	public List<Task> getTasksForUser(Project project) {
 		User user = userService.getCurrentUser();
-		return taskRepository.findByAssigneeAndCreatedByAndProjectAndParentTaskNull(user, user,project);
+		return taskRepository.findUserTasks(user, project);
 	}
 	
 	@Override
@@ -133,6 +133,31 @@ public class TaskServiceImpl implements TaskService{
 	    task.setStatus(status);
 	    taskRepository.save(task);
 		
+	}
+	
+	@Override
+	public void updateAssignee(Long taskId, Long assigneeId) {
+		Task task = taskRepository.findById(taskId)
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
+		if(assigneeId == null) {
+			task.setAssignee(null);
+		}else {
+			User user = userService.getUserById(assigneeId);
+			if(user != null) {			
+				task.setAssignee(user);
+			}else {
+				throw new RuntimeException("User not found");
+			}
+		}
+		taskRepository.save(task);				
+	}
+
+	@Override
+	public void updateTitle(Long taskId, String titleValue) {
+		Task task = taskRepository.findById(taskId)
+	            .orElseThrow(() -> new RuntimeException("Task not found"));
+		task.setTitle(titleValue);
+		taskRepository.save(task);
 	}
 
 }

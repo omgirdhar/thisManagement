@@ -29,4 +29,8 @@ public interface TaskService {
 	void updateEstimate(Long taskId, String estimateValue);
 	
 	void updateStatus(Long taskId, String status);
+
+	void updateAssignee(Long taskId, Long assigneeId);
+
+	void updateTitle(Long taskId, String titleValue);
 }

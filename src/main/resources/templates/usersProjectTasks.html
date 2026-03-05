@@ -11,6 +11,20 @@
   <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
   <link href="/css/sidebar.css" rel="stylesheet">
 </head>
+<style>
+	.avatar-circle{
+	  width:32px;
+	  height:32px;
+	  border-radius:50%;
+	  background:#0d6efd;
+	  color:white;
+	  font-size:13px;
+	  font-weight:600;
+	  display:flex;
+	  align-items:center;
+	  justify-content:center;
+	}
+</style>
 <body>
 
 <!-- Navbar -->
@@ -49,12 +63,62 @@
 		  </thead>
 		  <tbody>
 		    <tr th:each="task : ${taskList}">
-		      <td th:text="${task.id}"></td>
-		      <td th:style="${task.parentTask != null} ? 'padding-left: 2rem;' : ''">
-		        <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(projectId=${project.id},taskId=${task.id})}"
-		           th:text="${task.title}"></a>
-		      </td>
-		      <td th:text="${task.assignee != null ? task.assignee.firstName + ' ' + task.assignee.lastName : 'Unassigned'}"></td>
+				<td>
+				  <a class="fw-semibold text-primary" 
+				  th:href="@{/projects/{projectId}/tasks/details/{taskId}(projectId=${project.id},taskId=${task.id})}"
+				        th:text="${project.alias + '-' + task.id}">
+				  </a>
+				</td>
+				<td>
+				  <!-- VIEW MODE -->
+				  <span th:id="'title-view-' + ${task.id}"
+				        style="cursor:pointer;"
+				        th:text="${task.title}"
+				        th:onclick="'enableTitleEdit(' + ${task.id} + ')'">
+				  </span>
+
+				  <!-- EDIT MODE -->
+				  <input type="text"
+				         th:id="'title-edit-' + ${task.id}"
+				         class="form-control form-control-sm d-none"
+				         th:value="${task.title}"
+				         th:onblur="'updateTitle(' + ${task.id} + ')'"
+				         th:onkeydown="'handleTitleKey(event,' + ${task.id} + ')'">
+
+				</td>			  
+			  <td>
+			    <!-- VIEW MODE -->
+			    <div th:id="'assignee-view-' + ${task.id}"
+			         class="d-flex align-items-center gap-2"
+			         style="cursor:pointer;"
+			         th:onclick="'enableAssigneeEdit(' + ${task.id} + ')'">
+
+			      <div class="avatar-circle"
+			           th:if="${task.assignee != null}"
+			           th:text="${#strings.substring(task.assignee.firstName,0,1) + #strings.substring(task.assignee.lastName,0,1)}">
+			      </div>
+
+			      <span th:text="${task.assignee != null ? task.assignee.firstName + ' ' + task.assignee.lastName : 'Unassigned'}"></span>
+
+			    </div>
+
+			    <!-- EDIT MODE -->
+			    <select th:id="'assignee-edit-' + ${task.id}"
+			            class="form-select form-select-sm d-none"
+			            th:onchange="'updateAssignee(' + ${task.id} + ', this.value)'">
+
+			      <option value="">Unassigned</option>
+
+			      <option th:each="user : ${projectUsers}"
+			              th:value="${user.userId}"
+			              th:text="${user.name}"
+			              th:selected="${task.assignee != null and task.assignee.id == user.userId}">
+			      </option>
+
+			    </select>
+
+			  </td>
+			  
 		      <!--<td th:text="${task.dueDate}"></td>-->
 			  <td>
 
@@ -437,6 +501,148 @@ document.addEventListener("click", function (event) {
   }
 });
 
+</script>
+<script>
+	let activeAssigneeEditor = null;
+
+	function enableAssigneeEdit(taskId) {
+
+	  // Close previously open editor
+	  if (activeAssigneeEditor && activeAssigneeEditor !== taskId) {
+	    closeAssigneeEdit(activeAssigneeEditor);
+	  }
+
+	  activeAssigneeEditor = taskId;
+
+	  document.getElementById("assignee-view-" + taskId)
+	          .classList.add("d-none");
+
+	  const select = document.getElementById("assignee-edit-" + taskId);
+	  select.classList.remove("d-none");
+	  select.focus();
+	}
+
+	function closeAssigneeEdit(taskId) {
+
+	  const view = document.getElementById("assignee-view-" + taskId);
+	  const select = document.getElementById("assignee-edit-" + taskId);
+
+	  if (!view || !select) return;
+
+	  select.classList.add("d-none");
+	  view.classList.remove("d-none");
+
+	  activeAssigneeEditor = null;
+	}
+	
+	document.addEventListener("click", function (event) {
+
+	  if (!activeAssigneeEditor) return;
+
+	  const view = document.getElementById("assignee-view-" + activeAssigneeEditor);
+	  const select = document.getElementById("assignee-edit-" + activeAssigneeEditor);
+
+	  if (!view || !select) return;
+
+	  if (!select.contains(event.target) &&
+	      !view.contains(event.target)) {
+
+	    closeAssigneeEdit(activeAssigneeEditor);
+	  }
+	});
+	
+	function updateAssignee(taskId, userId){
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/assignee`,{
+	    method:"PATCH",
+	    headers:{
+	      "Content-Type":"application/json"
+	    },
+	    body:JSON.stringify({
+	      assigneeId:userId
+	    })
+	  })
+	  .then(res=>{
+	    if(res.ok){
+	      location.reload();
+	    }else{
+	      alert("Failed to update assignee");
+	    }
+	  });
+	}
+</script>
+<script>
+	let activeTitleEditor = null;
+
+	function enableTitleEdit(taskId){
+
+	  if(activeTitleEditor && activeTitleEditor !== taskId){
+	    closeTitleEdit(activeTitleEditor);
+	  }
+
+	  activeTitleEditor = taskId;
+
+	  const view = document.getElementById("title-view-"+taskId);
+	  const input = document.getElementById("title-edit-"+taskId);
+
+	  view.classList.add("d-none");
+	  input.classList.remove("d-none");
+
+	  input.focus();
+	  input.select();
+	}
+
+	function closeTitleEdit(taskId){
+
+	  const view = document.getElementById("title-view-"+taskId);
+	  const input = document.getElementById("title-edit-"+taskId);
+
+	  if(!view || !input) return;
+
+	  input.classList.add("d-none");
+	  view.classList.remove("d-none");
+
+	  activeTitleEditor = null;
+	}
+	function handleTitleKey(event, taskId){
+
+	  if(event.key === "Enter"){
+	    updateTitle(taskId);
+	  }
+
+	  if(event.key === "Escape"){
+	    closeTitleEdit(taskId);
+	  }
+
+	}
+	
+	function updateTitle(taskId){
+
+	  const input = document.getElementById("title-edit-"+taskId);
+	  const newTitle = input.value;
+
+	  fetch(`/projects/${projectId}/tasks/${taskId}/title`,{
+	    method:"PATCH",
+	    headers:{
+	      "Content-Type":"application/json"
+	    },
+	    body:JSON.stringify({
+	      title:newTitle
+	    })
+	  })
+	  .then(res=>{
+	    if(res.ok){
+
+	      const view = document.getElementById("title-view-"+taskId);
+	      view.innerText = newTitle;
+
+	      closeTitleEdit(taskId);
+
+	    }else{
+	      alert("Failed to update title");
+	    }
+	  });
+	}
 </script>
 </body>
 </html>
