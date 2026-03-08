@@ -307,341 +307,329 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/sidebar.js"></script>
 <script src="/js/authFetch.js"></script>
-
-<script>
-
-	function openEditModal(taskId) {
-
-	  fetch(`/projects/${projectId}/tasks/${taskId}`)
-	    .then(res => res.json())
-	    .then(task => {
-
-	      // Open panel
-	      openCreatePanel();
-
-	      // Change title
-	      document.getElementById("drawerTitle").innerText = "Edit Task";
-
-	      // Change form action
-	      document.getElementById("taskForm")
-	        .action = `/projects/${projectId}/tasks/update`;
-
-	      // Change button text
-	      document.getElementById("drawerSubmitBtn")
-	        .innerText = "Update";
-
-	      // Fill fields
-	      document.getElementById("taskIdField").value = task.id;
-	      document.querySelector('[name="title"]').value = task.title;
-	      document.querySelector('[name="description"]').value = task.description || '';
-	      document.querySelector('[name="priority"]').value = task.priority || '';
-	      document.querySelector('[name="status"]').value = task.status || '';
-	      document.querySelector('[name="startDate"]').value = task.startDate || '';
-	      document.querySelector('[name="dueDate"]').value = task.dueDate || '';
-	      document.querySelector('[name="taskType"]').value = task.taskType || '';
-	      document.querySelector('[name="parentTaskId"]').value =
-	        task.parentTask ? task.parentTask.id : '';
-		  document.querySelector('[name="assignee.id"]').value =
-			    task.assigneeId ? task.assigneeId : '';
-		  document.querySelector('[name="estimateInput"]').value =
-			    task.estimateFormatted || '';	
-	    });
-	}
-	
-</script>
-<script>
-const taskTypeSelect = document.querySelector('[name="taskType"]');
-const parentSelect = document.getElementById('parentTaskSelect');
-
-taskTypeSelect.addEventListener('change', () => {
-  if (taskTypeSelect.value === 'SUB_TASK') {
-    parentSelect.required = true;
-  } else {
-    parentSelect.required = false;
-    parentSelect.value = '';
-  }
-});
-</script>
-<script>
-	function openCreatePanel() {
-
-	  const panel = document.getElementById("createPanel");
-	  const main = document.getElementById("mainContent");
-
-	  panel.classList.remove("d-none");
-	  main.classList.remove("col-lg-10");
-	  main.classList.add("col-lg-6");
-
-	  // Reset form to CREATE mode
-	  document.getElementById("drawerTitle").innerText = "Create Task";
-	  document.getElementById("taskForm")
-	      .action = `/projects/${projectId}/tasks/save`;
-	  document.getElementById("drawerSubmitBtn")
-	      .innerText = "Create";
-
-	  document.getElementById("taskForm").reset();
-	  document.getElementById("taskIdField").value = "";
-	}
-
-function closeCreatePanel() {
-
-  const panel = document.getElementById("createPanel");
-  const main = document.getElementById("mainContent");
-
-  panel.classList.add("d-none");
-
-  main.classList.remove("col-lg-6");
-  main.classList.add("col-lg-10");
-}
-</script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 <script>
-$(document).ready(function () {
-  $('.task-table').DataTable({
-    paging: false,        // ❌ Remove pagination
-    info: false,          // ❌ Remove "Showing X of Y"
-    lengthChange: false,  // ❌ Remove entries dropdown
-    ordering: false,      // ❌ Remove column sorting
-    searching: true,      // ✅ Keep search
-    dom: 'f'              // ✅ Only show filter (search box)
-  });
-});
-</script>
-<script th:inline="javascript">
-
-var projectId = /*[[${project.id}]]*/ 0;
-let activeStatusEditor = null;
-
-function enableStatusEdit(taskId) {
-
-  // Close previous if open
-  if (activeStatusEditor && activeStatusEditor !== taskId) {
-    closeStatusEdit(activeStatusEditor);
-  }
-
-  activeStatusEditor = taskId;
-
-  document.getElementById("status-view-" + taskId)
-          .classList.add("d-none");
-
-  const select = document.getElementById("status-edit-" + taskId);
-  select.classList.remove("d-none");
-  select.focus();
-}
-
-function closeStatusEdit(taskId) {
-
-  const view = document.getElementById("status-view-" + taskId);
-  const select = document.getElementById("status-edit-" + taskId);
-
-  if (!view || !select) return;
-
-  select.classList.add("d-none");
-  view.classList.remove("d-none");
-
-  activeStatusEditor = null;
-}
-
-function updateTaskStatus(taskId, newStatus) {
-
-  fetch(`/projects/${projectId}/tasks/${taskId}/status`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ status: newStatus })
-  })
-  .then(response => {
-    if (response.ok) {
-
-      const view = document.getElementById("status-view-" + taskId);
-      const select = document.getElementById("status-edit-" + taskId);
-
-      view.innerText = formatStatus(newStatus);
-
-      view.classList.remove("bg-success", "bg-primary", "bg-secondary");
-
-      if (newStatus === "COMPLETED") {
-        view.classList.add("badge", "bg-success");
-      } else if (newStatus === "IN_PROGRESS") {
-        view.classList.add("badge", "bg-primary");
-      } else {
-        view.classList.add("badge", "bg-secondary");
-      }
-
-      select.classList.add("d-none");
-      view.classList.remove("d-none");
-
-    } else {
-      alert("Failed to update status");
-    }
-  });
-}
-
-function formatStatus(status) {
-  if (status === "IN_PROGRESS") return "In Progress";
-  if (status === "PENDING") return "Pending";
-  if (status === "COMPLETED") return "Completed";
-  return status;
-}
-
-document.addEventListener("click", function (event) {
-
-  if (!activeStatusEditor) return;
-
-  const view = document.getElementById("status-view-" + activeStatusEditor);
-  const select = document.getElementById("status-edit-" + activeStatusEditor);
-
-  if (!select || !view) return;
-
-  // If click is NOT inside select or badge
-  if (!select.contains(event.target) &&
-      !view.contains(event.target)) {
-
-    closeStatusEdit(activeStatusEditor);
-  }
-});
-
-</script>
-<script>
-	let activeAssigneeEditor = null;
-
-	function enableAssigneeEdit(taskId) {
-
-	  // Close previously open editor
-	  if (activeAssigneeEditor && activeAssigneeEditor !== taskId) {
-	    closeAssigneeEdit(activeAssigneeEditor);
-	  }
-
-	  activeAssigneeEditor = taskId;
-
-	  document.getElementById("assignee-view-" + taskId)
-	          .classList.add("d-none");
-
-	  const select = document.getElementById("assignee-edit-" + taskId);
-	  select.classList.remove("d-none");
-	  select.focus();
-	}
-
-	function closeAssigneeEdit(taskId) {
-
-	  const view = document.getElementById("assignee-view-" + taskId);
-	  const select = document.getElementById("assignee-edit-" + taskId);
-
-	  if (!view || !select) return;
-
-	  select.classList.add("d-none");
-	  view.classList.remove("d-none");
-
-	  activeAssigneeEditor = null;
-	}
-	
-	document.addEventListener("click", function (event) {
-
-	  if (!activeAssigneeEditor) return;
-
-	  const view = document.getElementById("assignee-view-" + activeAssigneeEditor);
-	  const select = document.getElementById("assignee-edit-" + activeAssigneeEditor);
-
-	  if (!view || !select) return;
-
-	  if (!select.contains(event.target) &&
-	      !view.contains(event.target)) {
-
-	    closeAssigneeEdit(activeAssigneeEditor);
-	  }
+	$(document).ready(function () {
+		$('.task-table').DataTable({
+			paging: false,        // ❌ Remove pagination
+			info: false,          // ❌ Remove "Showing X of Y"
+			lengthChange: false,  // ❌ Remove entries dropdown
+			ordering: false,      // ❌ Remove column sorting
+			searching: true,      // ✅ Keep search
+			dom: 'f'              // ✅ Only show filter (search box)
+		});
 	});
-	
-	function updateAssignee(taskId, userId){
-
-	  fetch(`/projects/${projectId}/tasks/${taskId}/assignee`,{
-	    method:"PATCH",
-	    headers:{
-	      "Content-Type":"application/json"
-	    },
-	    body:JSON.stringify({
-	      assigneeId:userId
-	    })
-	  })
-	  .then(res=>{
-	    if(res.ok){
-	      location.reload();
-	    }else{
-	      alert("Failed to update assignee");
-	    }
-	  });
-	}
 </script>
 <script>
+	let activeStatusEditor = null;
+	let activeAssigneeEditor = null;
 	let activeTitleEditor = null;
 
-	function enableTitleEdit(taskId){
+	const taskTypeSelect = document.querySelector('[name="taskType"]');
+	const parentSelect = document.getElementById('parentTaskSelect');
 
-	  if(activeTitleEditor && activeTitleEditor !== taskId){
-	    closeTitleEdit(activeTitleEditor);
-	  }
+	taskTypeSelect.addEventListener('change', () => {
+		if (taskTypeSelect.value === 'SUB_TASK') {
+			parentSelect.required = true;
+		} else {
+			parentSelect.required = false;
+			parentSelect.value = '';
+		}
+	});
+	
+	function openCreatePanel() {
+		const panel = document.getElementById("createPanel");
+		const main = document.getElementById("mainContent");
 
-	  activeTitleEditor = taskId;
+		panel.classList.remove("d-none");
+		main.classList.remove("col-lg-10");
+		main.classList.add("col-lg-6");
 
-	  const view = document.getElementById("title-view-"+taskId);
-	  const input = document.getElementById("title-edit-"+taskId);
+		// Reset form to CREATE mode
+		document.getElementById("drawerTitle").innerText = "Create Task";
+		document.getElementById("taskForm")
+			.action = `/task/save`;
+		document.getElementById("drawerSubmitBtn")
+			.innerText = "Create";
 
-	  view.classList.add("d-none");
-	  input.classList.remove("d-none");
-
-	  input.focus();
-	  input.select();
+		document.getElementById("taskForm").reset();
+		document.getElementById("taskIdField").value = "";
 	}
 
-	function closeTitleEdit(taskId){
+	function closeCreatePanel() {
+		const panel = document.getElementById("createPanel");
+		const main = document.getElementById("mainContent");
 
-	  const view = document.getElementById("title-view-"+taskId);
-	  const input = document.getElementById("title-edit-"+taskId);
+		panel.classList.add("d-none");
 
-	  if(!view || !input) return;
-
-	  input.classList.add("d-none");
-	  view.classList.remove("d-none");
-
-	  activeTitleEditor = null;
-	}
-	function handleTitleKey(event, taskId){
-
-	  if(event.key === "Enter"){
-	    updateTitle(taskId);
-	  }
-
-	  if(event.key === "Escape"){
-	    closeTitleEdit(taskId);
-	  }
-
+		main.classList.remove("col-lg-6");
+		main.classList.add("col-lg-10");
 	}
 	
-	function updateTitle(taskId){
+	function enableStatusEdit(taskId) {
 
-	  const input = document.getElementById("title-edit-"+taskId);
-	  const newTitle = input.value;
+		// Close previous if open
+		if (activeStatusEditor && activeStatusEditor !== taskId) {
+			closeStatusEdit(activeStatusEditor);
+		}
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/title`,{
-	    method:"PATCH",
-	    headers:{
-	      "Content-Type":"application/json"
-	    },
-	    body:JSON.stringify({
-	      title:newTitle
-	    })
-	  })
-	  .then(res=>{
-	    if(res.ok){
+		activeStatusEditor = taskId;
 
-	      const view = document.getElementById("title-view-"+taskId);
-	      view.innerText = newTitle;
+		document.getElementById("status-view-" + taskId)
+			.classList.add("d-none");
 
-	      closeTitleEdit(taskId);
+		const select = document.getElementById("status-edit-" + taskId);
+		select.classList.remove("d-none");
+		select.focus();
+	}
 
-	    }else{
-	      alert("Failed to update title");
-	    }
-	  });
+	function closeStatusEdit(taskId) {
+
+		const view = document.getElementById("status-view-" + taskId);
+		const select = document.getElementById("status-edit-" + taskId);
+
+		if (!view || !select) return;
+
+		select.classList.add("d-none");
+		view.classList.remove("d-none");
+
+		activeStatusEditor = null;
+	}
+	
+	function formatStatus(status) {
+		if (status === "IN_PROGRESS") return "In Progress";
+		if (status === "PENDING") return "Pending";
+		if (status === "COMPLETED") return "Completed";
+		return status;
+	}
+
+	document.addEventListener("click", function (event) {
+		if (!activeStatusEditor) return;
+
+		const view = document.getElementById("status-view-" + activeStatusEditor);
+		const select = document.getElementById("status-edit-" + activeStatusEditor);
+
+		if (!select || !view) return;
+
+		// If click is NOT inside select or badge
+		if (!select.contains(event.target) &&
+			!view.contains(event.target)) {
+
+			closeStatusEdit(activeStatusEditor);
+		}
+	});
+	
+
+		function enableAssigneeEdit(taskId) {
+
+			// Close previously open editor
+			if (activeAssigneeEditor && activeAssigneeEditor !== taskId) {
+				closeAssigneeEdit(activeAssigneeEditor);
+			}
+
+			activeAssigneeEditor = taskId;
+
+			document.getElementById("assignee-view-" + taskId)
+				.classList.add("d-none");
+
+			const select = document.getElementById("assignee-edit-" + taskId);
+			select.classList.remove("d-none");
+			select.focus();
+		}
+
+		function closeAssigneeEdit(taskId) {
+
+			const view = document.getElementById("assignee-view-" + taskId);
+			const select = document.getElementById("assignee-edit-" + taskId);
+
+			if (!view || !select) return;
+
+			select.classList.add("d-none");
+			view.classList.remove("d-none");
+
+			activeAssigneeEditor = null;
+		}
+
+		document.addEventListener("click", function (event) {
+
+			if (!activeAssigneeEditor) return;
+
+			const view = document.getElementById("assignee-view-" + activeAssigneeEditor);
+			const select = document.getElementById("assignee-edit-" + activeAssigneeEditor);
+
+			if (!view || !select) return;
+
+			if (!select.contains(event.target) &&
+				!view.contains(event.target)) {
+
+				closeAssigneeEdit(activeAssigneeEditor);
+			}
+		});
+		
+		function enableTitleEdit(taskId) {
+
+			if (activeTitleEditor && activeTitleEditor !== taskId) {
+				closeTitleEdit(activeTitleEditor);
+			}
+
+			activeTitleEditor = taskId;
+
+			const view = document.getElementById("title-view-" + taskId);
+			const input = document.getElementById("title-edit-" + taskId);
+
+			view.classList.add("d-none");
+			input.classList.remove("d-none");
+
+			input.focus();
+			input.select();
+		}
+
+		function closeTitleEdit(taskId) {
+
+			const view = document.getElementById("title-view-" + taskId);
+			const input = document.getElementById("title-edit-" + taskId);
+
+			if (!view || !input) return;
+
+			input.classList.add("d-none");
+			view.classList.remove("d-none");
+
+			activeTitleEditor = null;
+		}
+		function handleTitleKey(event, taskId) {
+
+			if (event.key === "Enter") {
+				updateTitle(taskId);
+			}
+
+			if (event.key === "Escape") {
+				closeTitleEdit(taskId);
+			}
+
+		}
+
+</script>
+<script th:inline="javascript">
+	var projectId = /*[[${project.id}]]*/ 0;
+	function openEditModal(taskId) {
+
+		fetch(`/projects/${projectId}/tasks/${taskId}`)
+			.then(res => res.json())
+			.then(task => {
+
+				// Open panel
+				openCreatePanel();
+
+				// Change title
+				document.getElementById("drawerTitle").innerText = "Edit Task";
+
+				// Change form action
+				document.getElementById("taskForm")
+					.action = `/task/update`;
+
+				// Change button text
+				document.getElementById("drawerSubmitBtn")
+					.innerText = "Update";
+
+				// Fill fields
+				document.getElementById("taskIdField").value = task.id;
+				document.querySelector('[name="title"]').value = task.title;
+				document.querySelector('[name="description"]').value = task.description || '';
+				document.querySelector('[name="priority"]').value = task.priority || '';
+				document.querySelector('[name="status"]').value = task.status || '';
+				document.querySelector('[name="startDate"]').value = task.startDate || '';
+				document.querySelector('[name="dueDate"]').value = task.dueDate || '';
+				document.querySelector('[name="taskType"]').value = task.taskType || '';
+				document.querySelector('[name="parentTaskId"]').value =
+					task.parentTask ? task.parentTask.id : '';
+				document.querySelector('[name="assignee.id"]').value =
+					task.assigneeId ? task.assigneeId : '';
+				document.querySelector('[name="estimateInput"]').value =
+					task.estimateFormatted || '';
+			});
+	}
+
+	function updateTaskStatus(taskId, newStatus) {
+
+		fetch(`/task/${taskId}/status`, {
+			method: "PATCH",
+			headers: {"Content-Type": "application/json"},
+			body: JSON.stringify({status: newStatus})
+		})
+			.then(response => {
+				if (response.ok) {
+
+					const view = document.getElementById("status-view-" + taskId);
+					const select = document.getElementById("status-edit-" + taskId);
+
+					view.innerText = formatStatus(newStatus);
+
+					view.classList.remove("bg-success", "bg-primary", "bg-secondary");
+
+					if (newStatus === "COMPLETED") {
+						view.classList.add("badge", "bg-success");
+					} else if (newStatus === "IN_PROGRESS") {
+						view.classList.add("badge", "bg-primary");
+					} else {
+						view.classList.add("badge", "bg-secondary");
+					}
+
+					select.classList.add("d-none");
+					view.classList.remove("d-none");
+
+				} else {
+					alert("Failed to update status");
+				}
+			});
+	}
+
+	function updateAssignee(taskId, userId) {
+
+		fetch(`/task/${taskId}/assignee`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				assigneeId: userId
+			})
+		})
+			.then(res => {
+				if (res.ok) {
+					location.reload();
+				} else {
+					alert("Failed to update assignee");
+				}
+			});
+	}
+
+	function updateTitle(taskId) {
+
+		const input = document.getElementById("title-edit-" + taskId);
+		const newTitle = input.value;
+
+		fetch(`/task/${taskId}/title`, {
+			method: "PATCH",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify({
+				title: newTitle
+			})
+		})
+			.then(res => {
+				if (res.ok) {
+
+					const view = document.getElementById("title-view-" + taskId);
+					view.innerText = newTitle;
+
+					closeTitleEdit(taskId);
+
+				} else {
+					alert("Failed to update title");
+				}
+			});
 	}
 </script>
 </body>

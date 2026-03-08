@@ -501,52 +501,22 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/sidebar.js"></script>
-<script th:inline="javascript">
-  function enableEdit() {
-    document.getElementById("description-view").classList.add("d-none");
-    document.getElementById("description-edit").classList.remove("d-none");
-  }
-
-  function cancelEdit() {
-    document.getElementById("description-edit").classList.add("d-none");
-    document.getElementById("description-view").classList.remove("d-none");
-  }
-
-  var projectId = /*[[${project.id}]]*/0;
-  var taskId = /*[[${currentTask.id}]]*/ 0;
-  function saveDescription(taskId) {
-
-    const newDescription =
-        document.getElementById("description-textarea").value;
-		
-    fetch(`/projects/${projectId}/tasks/${taskId}/description`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        description: newDescription
-      })
-    })
-    .then(response => {
-      if (response.ok) {
-        document.getElementById("description-view").innerText =
-            newDescription || "Click to add description...";
-
-        cancelEdit();
-      } else {
-        alert("Failed to update description");
-      }
-    });
-  }
-</script>
 <script>
-	function enableCommentEdit(commentId) {
-	  document.getElementById("comment-view-" + commentId)
-	          .classList.add("d-none");
-	  document.getElementById("comment-edit-" + commentId)
-	          .classList.remove("d-none");
+	function enableEdit() {
+	  document.getElementById("description-view").classList.add("d-none");
+	  document.getElementById("description-edit").classList.remove("d-none");
 	}
+
+	function cancelEdit() {
+	  document.getElementById("description-edit").classList.add("d-none");
+	  document.getElementById("description-view").classList.remove("d-none");
+	}
+	function enableCommentEdit(commentId) {
+		  document.getElementById("comment-view-" + commentId)
+		          .classList.add("d-none");
+		  document.getElementById("comment-edit-" + commentId)
+		          .classList.remove("d-none");
+		}
 
 	function cancelCommentEdit(commentId) {
 	  document.getElementById("comment-edit-" + commentId)
@@ -554,7 +524,136 @@
 	  document.getElementById("comment-view-" + commentId)
 	          .classList.remove("d-none");
 	}
+	function enablePriorityEdit() {
+	  document.getElementById("priority-view").classList.add("d-none");
+	  document.getElementById("priority-edit").classList.remove("d-none");
+	}
 
+	function enableDueDateEdit() {
+	  document.getElementById("dueDate-view").classList.add("d-none");
+
+	  const edit = document.getElementById("dueDate-edit");
+	  edit.classList.remove("d-none");
+
+	  const input = document.getElementById("dueDate-input");
+	  input.focus();
+	  if (input.showPicker) input.showPicker();
+	}
+	function enableStartDateEdit() {
+	  document.getElementById("startDate-view").classList.add("d-none");
+
+	  const edit = document.getElementById("startDate-edit");
+	  edit.classList.remove("d-none");
+
+	  const input = document.getElementById("startDate-input");
+	  input.focus();
+	  if (input.showPicker) input.showPicker();
+	}
+	function enableEstimateEdit() {
+	  document.getElementById("estimate-view").classList.add("d-none");
+	  document.getElementById("estimate-edit").classList.remove("d-none");
+	}	
+	
+	document.addEventListener("click", function (event) {
+
+	  function handleOutside(viewId, editId) {
+	    const view = document.getElementById(viewId);
+	    const edit = document.getElementById(editId);
+
+	    if (!view || !edit) return;
+
+	    if (!edit.classList.contains("d-none")) {
+	      if (!edit.contains(event.target) &&
+	          !view.contains(event.target)) {
+
+	        edit.classList.add("d-none");
+	        view.classList.remove("d-none");
+	      }
+	    }
+	  }
+
+	  handleOutside("priority-view", "priority-edit");
+	  handleOutside("dueDate-view", "dueDate-edit");
+	  handleOutside("startDate-view", "startDate-edit");
+	  handleOutside("estimate-view", "estimate-edit");
+
+	});
+	
+
+	function formatStatus(status) {
+	  if (status === "IN_PROGRESS") return "In Progress";
+	  if (status === "TO_DO") return "To Do";
+	  if (status === "DONE") return "Done";
+	  return status;
+	}
+	
+	function saveDescription(taskId) {
+
+	  const newDescription =
+	      document.getElementById("description-textarea").value;
+		
+	  fetch(`/task/${taskId}/description`, {
+	    method: "PATCH",
+	    headers: {
+	      "Content-Type": "application/json"
+	    },
+	    body: JSON.stringify({
+	      description: newDescription
+	    })
+	  })
+	  .then(response => {
+	    if (response.ok) {
+	      document.getElementById("description-view").innerText =
+	          newDescription || "Click to add description...";
+
+	      cancelEdit();
+	    } else {
+	      alert("Failed to update description");
+	    }
+	  });
+	}
+</script>
+<script th:inline="javascript">
+  var taskId = /*[[${currentTask.id}]]*/ 0;
+  
+  function updateStatus(newStatus) {
+
+    fetch(`/task/${taskId}/status`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        status: newStatus
+      })
+    })
+    .then(response => {
+      if (response.ok) {
+
+        const button = document.getElementById("statusButton");
+        const text = document.getElementById("statusText");
+
+        text.innerText = formatStatus(newStatus);
+
+        // remove old color classes
+        button.classList.remove("btn-success", "btn-primary", "btn-secondary");
+
+        // apply new color
+        if (newStatus === "DONE") {
+          button.classList.add("btn-success");
+        } else if (newStatus === "IN_PROGRESS") {
+          button.classList.add("btn-primary");
+        } else {
+          button.classList.add("btn-secondary");
+        }
+
+      } else {
+        alert("Failed to update status");
+      }
+    });
+  }
+</script>
+<script>	
 	function addComment(taskId) {
 
 	  const content = document.getElementById("new-comment").value;
@@ -564,7 +663,7 @@
 	    return;
 	  }
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/comments`, {
+	  fetch(`/task/${taskId}/comments`, {
 	    method: "POST",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -587,7 +686,7 @@
 	  const content =
 	      document.getElementById("comment-textarea-" + commentId).value;
 
-	  fetch(`/projects/${projectId}/tasks/comments/${commentId}`, {
+	  fetch(`/task/comments/${commentId}`, {
 	    method: "PATCH",
 	    headers: { "Content-Type": "application/json" },
 	    body: JSON.stringify({ content: content })
@@ -605,7 +704,7 @@
 
 	function deleteComment(commentId) {
 
-	  fetch(`/projects/${projectId}/tasks/comments/${commentId}`, {
+	  fetch(`/task/comments/${commentId}`, {
 	    method: "DELETE"
 	  })
 	  .then(response => {
@@ -618,19 +717,12 @@
 	  });
 	}
 
-</script>
-<script>
-	function enablePriorityEdit() {
-	  document.getElementById("priority-view").classList.add("d-none");
-	  document.getElementById("priority-edit").classList.remove("d-none");
-	}
-
 	function savePriority(taskId) {
 
 	  const select = document.getElementById("priority-select");
 	  const newPriority = select.value || null;
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/priority`, {
+	  fetch(`/task/${taskId}/priority`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -670,25 +762,13 @@
 	    }
 	  });
 	}
-</script>
-<script>
-	function enableDueDateEdit() {
-	  document.getElementById("dueDate-view").classList.add("d-none");
-
-	  const edit = document.getElementById("dueDate-edit");
-	  edit.classList.remove("d-none");
-
-	  const input = document.getElementById("dueDate-input");
-	  input.focus();
-	  if (input.showPicker) input.showPicker();
-	}
 
 	function saveDueDate(taskId) {
 
 	  const newDate =
 	      document.getElementById("dueDate-input").value;
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/due-date`, {
+	  fetch(`/task/${taskId}/due-date`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -723,24 +803,13 @@
 	    }
 	  });
 	}
-
-	function enableStartDateEdit() {
-	  document.getElementById("startDate-view").classList.add("d-none");
-
-	  const edit = document.getElementById("startDate-edit");
-	  edit.classList.remove("d-none");
-
-	  const input = document.getElementById("startDate-input");
-	  input.focus();
-	  if (input.showPicker) input.showPicker();
-	}
-
+	
 	function saveStartDate(taskId) {
 
 	  const newDate =
 	      document.getElementById("startDate-input").value;
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/start-date`, {
+	  fetch(`/task/${taskId}/start-date`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -776,19 +845,12 @@
 	  });
 	}
 
-</script>
-<script>
-	function enableEstimateEdit() {
-	  document.getElementById("estimate-view").classList.add("d-none");
-	  document.getElementById("estimate-edit").classList.remove("d-none");
-	}
-
 	function saveEstimate(taskId) {
 
 	  const value =
 	      document.getElementById("estimate-input").value;
 
-	  fetch(`/projects/${projectId}/tasks/${taskId}/estimate`, {
+	  fetch(`/task/${taskId}/estimate`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -805,79 +867,7 @@
 	    }
 	  });
 	}
-
-
-</script>
-<script>
-document.addEventListener("click", function (event) {
-
-  function handleOutside(viewId, editId) {
-    const view = document.getElementById(viewId);
-    const edit = document.getElementById(editId);
-
-    if (!view || !edit) return;
-
-    if (!edit.classList.contains("d-none")) {
-      if (!edit.contains(event.target) &&
-          !view.contains(event.target)) {
-
-        edit.classList.add("d-none");
-        view.classList.remove("d-none");
-      }
-    }
-  }
-
-  handleOutside("priority-view", "priority-edit");
-  handleOutside("dueDate-view", "dueDate-edit");
-  handleOutside("startDate-view", "startDate-edit");
-  handleOutside("estimate-view", "estimate-edit");
-
-});
-</script>
-<script>
-function updateStatus(newStatus) {
-
-  fetch(`/projects/${projectId}/tasks/${taskId}/status`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      status: newStatus
-    })
-  })
-  .then(response => {
-    if (response.ok) {
-
-      const button = document.getElementById("statusButton");
-      const text = document.getElementById("statusText");
-
-      text.innerText = formatStatus(newStatus);
-
-      // remove old color classes
-      button.classList.remove("btn-success", "btn-primary", "btn-secondary");
-
-      // apply new color
-      if (newStatus === "DONE") {
-        button.classList.add("btn-success");
-      } else if (newStatus === "IN_PROGRESS") {
-        button.classList.add("btn-primary");
-      } else {
-        button.classList.add("btn-secondary");
-      }
-
-    } else {
-      alert("Failed to update status");
-    }
-  });
-}
-
-function formatStatus(status) {
-  if (status === "IN_PROGRESS") return "In Progress";
-  if (status === "TO_DO") return "To Do";
-  if (status === "DONE") return "Done";
-  return status;
-}
+	
 </script>
 </body>
 </html>
