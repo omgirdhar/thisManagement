@@ -592,7 +592,7 @@
 	  const newDescription =
 	      document.getElementById("description-textarea").value;
 		
-	  fetch(`/task/${taskId}/description`, {
+	  fetch(`/task/${taskId}`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -618,7 +618,7 @@
   
   function updateStatus(newStatus) {
 
-    fetch(`/task/${taskId}/status`, {
+    fetch(`/task/${taskId}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json"
@@ -663,7 +663,7 @@
 	    return;
 	  }
 
-	  fetch(`/task/${taskId}/comments`, {
+	  fetch(`/comments/add/${taskId}`, {
 	    method: "POST",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -686,7 +686,7 @@
 	  const content =
 	      document.getElementById("comment-textarea-" + commentId).value;
 
-	  fetch(`/task/comments/${commentId}`, {
+	  fetch(`/comments/update/${commentId}`, {
 	    method: "PATCH",
 	    headers: { "Content-Type": "application/json" },
 	    body: JSON.stringify({ content: content })
@@ -704,7 +704,7 @@
 
 	function deleteComment(commentId) {
 
-	  fetch(`/task/comments/${commentId}`, {
+	  fetch(`/comments/delete/${commentId}`, {
 	    method: "DELETE"
 	  })
 	  .then(response => {
@@ -722,7 +722,7 @@
 	  const select = document.getElementById("priority-select");
 	  const newPriority = select.value || null;
 
-	  fetch(`/task/${taskId}/priority`, {
+	  fetch(`/task/${taskId}`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -768,7 +768,7 @@
 	  const newDate =
 	      document.getElementById("dueDate-input").value;
 
-	  fetch(`/task/${taskId}/due-date`, {
+	  fetch(`/task/${taskId}`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -809,7 +809,7 @@
 	  const newDate =
 	      document.getElementById("startDate-input").value;
 
-	  fetch(`/task/${taskId}/start-date`, {
+	  fetch(`/task/${taskId}`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"
@@ -850,7 +850,7 @@
 	  const value =
 	      document.getElementById("estimate-input").value;
 
-	  fetch(`/task/${taskId}/estimate`, {
+	  fetch(`/task/${taskId}`, {
 	    method: "PATCH",
 	    headers: {
 	      "Content-Type": "application/json"

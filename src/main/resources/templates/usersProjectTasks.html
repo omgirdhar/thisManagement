@@ -526,7 +526,7 @@
 
 				// Change form action
 				document.getElementById("taskForm")
-					.action = `/task/update`;
+					.action = `/projects/${projectId}/tasks/update`;
 
 				// Change button text
 				document.getElementById("drawerSubmitBtn")
@@ -552,7 +552,7 @@
 
 	function updateTaskStatus(taskId, newStatus) {
 
-		fetch(`/task/${taskId}/status`, {
+		fetch(`/task/${taskId}`, {
 			method: "PATCH",
 			headers: {"Content-Type": "application/json"},
 			body: JSON.stringify({status: newStatus})
@@ -586,7 +586,7 @@
 
 	function updateAssignee(taskId, userId) {
 
-		fetch(`/task/${taskId}/assignee`, {
+		fetch(`/task/${taskId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json"
@@ -609,7 +609,7 @@
 		const input = document.getElementById("title-edit-" + taskId);
 		const newTitle = input.value;
 
-		fetch(`/task/${taskId}/title`, {
+		fetch(`/task/${taskId}`, {
 			method: "PATCH",
 			headers: {
 				"Content-Type": "application/json"

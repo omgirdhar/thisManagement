@@ -2,6 +2,7 @@ package com.application.management.service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,105 +60,50 @@ public class TaskServiceImpl implements TaskService{
 	}
 
 	@Transactional
-	public void updateDescription(Long taskId, String description) {
+	public void updateTask(Long taskId, Map<String, Object> updates) {
 	    Task task = taskRepository.findById(taskId)
 	            .orElseThrow(() -> new RuntimeException("Task not found"));
 
-	    task.setDescription(description);
-	    taskRepository.save(task);
-	}
-	
-	@Override
-	public void updatePriority(Long taskId, String priorityValue) {
-
-	    Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-
-	    task.setPriority(priorityValue != null ? Priority.valueOf(priorityValue): null);
-	    taskRepository.save(task);
-	}
-
-	@Override
-	public void updateDueDate(Long taskId, String dueDateValue) {
-
-	    Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-
-	    if (dueDateValue == null || dueDateValue.isBlank()) {
-	        task.setDueDate(null);
-	    } else {
-	        task.setDueDate(LocalDate.parse(dueDateValue));
+	    if (updates.containsKey("description")) {
+	        task.setDescription((String) updates.get("description"));
+	    }
+	    if (updates.containsKey("title")) {
+	        task.setTitle((String) updates.get("title"));
+	    }
+	    if (updates.containsKey("priority")) {
+	        String value = (String) updates.get("priority");
+	        task.setPriority(value != null ? Priority.valueOf(value) : null);
+	    }
+	    if (updates.containsKey("dueDate")) {
+	        String dueDate = (String) updates.get("dueDate");
+	        task.setDueDate(dueDate == null || dueDate.isBlank() ? null : LocalDate.parse(dueDate));
+	    }
+	    if (updates.containsKey("startDate")) {
+	        String startDate = (String) updates.get("startDate");
+	        task.setStartDate(startDate == null || startDate.isBlank() ? null : LocalDate.parse(startDate));
+	    }
+	    if (updates.containsKey("estimate")) {
+	        String estimate = (String) updates.get("estimate");
+	        task.setOriginalEstimateMinutes(
+	                estimate == null || estimate.isBlank() ? null : TimeFormatUtils.parseEstimateToMinutes(estimate)
+	        );
+	    }
+	    if (updates.containsKey("status")) {
+	        task.setStatus((String) updates.get("status"));
+	    }
+	    if (updates.containsKey("assigneeId")) {
+	        Object assigneeIdObj = updates.get("assigneeId");
+	        if (assigneeIdObj == null || assigneeIdObj.toString().isBlank()) {
+	            task.setAssignee(null);
+	        } else {
+	            Long assigneeId = Long.valueOf(assigneeIdObj.toString());
+	            User user = userService.getUserById(assigneeId);
+	            if (user == null) throw new RuntimeException("User not found");
+	            task.setAssignee(user);
+	        }
 	    }
 
 	    taskRepository.save(task);
-	}
-
-	@Override
-	public void updateStartDate(Long taskId, String startDateValue) {
-
-	    Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-
-	    if (startDateValue == null || startDateValue.isBlank()) {
-	        task.setStartDate(null);
-	    } else {
-	        task.setStartDate(LocalDate.parse(startDateValue));
-	    }
-
-	    taskRepository.save(task);
-	}
-
-	@Override
-	public void updateEstimate(Long taskId, String estimateValue) {
-
-	    Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-
-	    if (estimateValue == null || estimateValue.isBlank()) {
-	        task.setOriginalEstimateMinutes(null);
-	        taskRepository.save(task);
-	        return;
-	    }
-
-	    int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateValue);
-
-	    task.setOriginalEstimateMinutes(totalMinutes);
-	    taskRepository.save(task);
-	}
-
-	@Override
-	public void updateStatus(Long taskId, String status) {
-		Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-
-	    task.setStatus(status);
-	    taskRepository.save(task);
-		
-	}
-	
-	@Override
-	public void updateAssignee(Long taskId, Long assigneeId) {
-		Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-		if(assigneeId == null) {
-			task.setAssignee(null);
-		}else {
-			User user = userService.getUserById(assigneeId);
-			if(user != null) {			
-				task.setAssignee(user);
-			}else {
-				throw new RuntimeException("User not found");
-			}
-		}
-		taskRepository.save(task);				
-	}
-
-	@Override
-	public void updateTitle(Long taskId, String titleValue) {
-		Task task = taskRepository.findById(taskId)
-	            .orElseThrow(() -> new RuntimeException("Task not found"));
-		task.setTitle(titleValue);
-		taskRepository.save(task);
 	}
 
 }

@@ -16,7 +16,7 @@ import com.application.management.model.Comment;
 import com.application.management.service.CommentService;
 
 @RestController
-@RequestMapping("/projects/{projectId}/tasks")
+@RequestMapping("/comments")
 public class CommentRestController {
 	private final CommentService commentService;
 	
@@ -24,21 +24,21 @@ public class CommentRestController {
 		this.commentService = commentService;
 	}
 	
-    @PostMapping("/{taskId}/comments")
+    @PostMapping("/add/{taskId}")
     @ResponseBody
 	public ResponseEntity<?> addComment(@PathVariable Long taskId, @RequestBody Map<String, String> payload) {
 		Comment comment = commentService.createComment(taskId, payload.get("content"));
 		return ResponseEntity.ok(comment.getId());
 	}
     
-    @DeleteMapping("/comments/{commentId}")
+    @DeleteMapping("/delete/{commentId}")
     @ResponseBody
     public ResponseEntity<?> deleteComment(@PathVariable Long commentId) {
 		commentService.deleteComment(commentId);
 		return ResponseEntity.ok("Comment Deleted.");
 	}
     
-    @PatchMapping("/comments/{commentId}")
+    @PatchMapping("/update/{commentId}")
     @ResponseBody
     public ResponseEntity<?> updateComment(@PathVariable Long commentId,
                                                @RequestBody Map<String, String> payload) {

@@ -1,10 +1,10 @@
 package com.application.management.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.application.management.model.Project;
 import com.application.management.model.Task;
-import com.application.management.utils.Enums.TaskType;
 
 public interface TaskService {
 
@@ -18,19 +18,5 @@ public interface TaskService {
 
 	List<Task> getChildTasksByParentTaskId(Task task);
 	
-	void updateDescription(Long taskId, String description);
-	
-	void updatePriority(Long taskId, String priorityValue);
-	
-	void updateDueDate(Long taskId, String dueDateValue);
-	
-	void updateStartDate(Long taskId, String startDateValue);
-	
-	void updateEstimate(Long taskId, String estimateValue);
-	
-	void updateStatus(Long taskId, String status);
-
-	void updateAssignee(Long taskId, Long assigneeId);
-
-	void updateTitle(Long taskId, String titleValue);
+	public void updateTask(Long taskId, Map<String, Object> updates);
 }
