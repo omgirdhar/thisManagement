@@ -280,13 +280,14 @@
               </thead>
               <tbody>
                 <tr th:each="task : ${childTasks}">
-                  <td th:text="${task.id}"></td>
-                  <td>
-                    <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
-                          projectId=${project.id},
-                          taskId=${task.id})}"
-                       th:text="${task.title}">
-                    </a>
+                  <td >
+					<a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
+					                          projectId=${project.id},
+					                          taskId=${task.id})}"
+					                       th:text="${project.alias + '-' + task.id}">
+					                    </a>
+				  </td>
+                  <td th:text="${task.title}">
                   </td>
                   <td th:text="${task.assignee != null 
                         ? task.assignee.firstName + ' ' + task.assignee.lastName 
