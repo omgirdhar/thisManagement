@@ -136,16 +136,11 @@
 			    <select th:id="'status-edit-' + ${task.id}"
 			            class="form-select form-select-sm d-none"
 			            th:onchange="'updateTaskStatus(' + ${task.id} + ', this.value)'">
-
-			      <option value="PENDING"
-			              th:selected="${task.status == 'PENDING'}">Pending</option>
-
-			      <option value="IN_PROGRESS"
-			              th:selected="${task.status == 'IN_PROGRESS'}">In Progress</option>
-
-			      <option value="COMPLETED"
-			              th:selected="${task.status == 'COMPLETED'}">Completed</option>
-
+						<option th:each="status : ${statuses}"
+						        th:value="${status}"
+						        th:text="${status}"
+						        th:selected="${task.status == status}">
+						</option>
 			    </select>
 
 			  </td>
@@ -514,9 +509,9 @@
 	var projectId = /*[[${project.id}]]*/ 0;
 	function openEditModal(taskId) {
 
-		fetch(`/projects/${projectId}/tasks/${taskId}`)
-			.then(res => res.json())
+		authFetch(`/projects/${projectId}/tasks/${taskId}`)
 			.then(task => {
+				if (!task) return;
 
 				// Open panel
 				openCreatePanel();
@@ -552,56 +547,50 @@
 
 	function updateTaskStatus(taskId, newStatus) {
 
-		fetch(`/task/${taskId}`, {
+		authFetch(`/task/${taskId}`, {
 			method: "PATCH",
-			headers: {"Content-Type": "application/json"},
-			body: JSON.stringify({status: newStatus})
+			body: JSON.stringify({ status: newStatus })
 		})
-			.then(response => {
-				if (response.ok) {
+		.then(() => {
 
-					const view = document.getElementById("status-view-" + taskId);
-					const select = document.getElementById("status-edit-" + taskId);
+			const view = document.getElementById("status-view-" + taskId);
+			const select = document.getElementById("status-edit-" + taskId);
 
-					view.innerText = formatStatus(newStatus);
+			view.innerText = formatStatus(newStatus);
 
-					view.classList.remove("bg-success", "bg-primary", "bg-secondary");
+			view.classList.remove("bg-success", "bg-primary", "bg-secondary");
 
-					if (newStatus === "COMPLETED") {
-						view.classList.add("badge", "bg-success");
-					} else if (newStatus === "IN_PROGRESS") {
-						view.classList.add("badge", "bg-primary");
-					} else {
-						view.classList.add("badge", "bg-secondary");
-					}
+			if (newStatus === "COMPLETED") {
+				view.classList.add("badge", "bg-success");
+			} else if (newStatus === "IN_PROGRESS") {
+				view.classList.add("badge", "bg-primary");
+			} else {
+				view.classList.add("badge", "bg-secondary");
+			}
 
-					select.classList.add("d-none");
-					view.classList.remove("d-none");
+			select.classList.add("d-none");
+			view.classList.remove("d-none");
 
-				} else {
-					alert("Failed to update status");
-				}
-			});
+		})
+		.catch(() => {
+			alert("Failed to update status");
+		});
 	}
 
 	function updateAssignee(taskId, userId) {
 
-		fetch(`/task/${taskId}`, {
+		authFetch(`/task/${taskId}`, {
 			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json"
-			},
 			body: JSON.stringify({
 				assigneeId: userId
 			})
 		})
-			.then(res => {
-				if (res.ok) {
-					location.reload();
-				} else {
-					alert("Failed to update assignee");
-				}
-			});
+		.then(() => {
+			location.reload();
+		})
+		.catch(() => {
+			alert("Failed to update assignee");
+		});
 	}
 
 	function updateTitle(taskId) {
@@ -609,27 +598,23 @@
 		const input = document.getElementById("title-edit-" + taskId);
 		const newTitle = input.value;
 
-		fetch(`/task/${taskId}`, {
+		authFetch(`/task/${taskId}`, {
 			method: "PATCH",
-			headers: {
-				"Content-Type": "application/json"
-			},
 			body: JSON.stringify({
 				title: newTitle
 			})
 		})
-			.then(res => {
-				if (res.ok) {
+		.then(() => {
 
-					const view = document.getElementById("title-view-" + taskId);
-					view.innerText = newTitle;
+			const view = document.getElementById("title-view-" + taskId);
+			view.innerText = newTitle;
 
-					closeTitleEdit(taskId);
+			closeTitleEdit(taskId);
 
-				} else {
-					alert("Failed to update title");
-				}
-			});
+		})
+		.catch(() => {
+			alert("Failed to update title");
+		});
 	}
 </script>
 </body>

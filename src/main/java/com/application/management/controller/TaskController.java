@@ -30,6 +30,7 @@ import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
 import com.application.management.service.UserService;
 import com.application.management.utils.TimeFormatUtils;
+import com.application.management.utils.Enums;
 import com.application.management.utils.Enums.TaskType;
 
 
@@ -64,7 +65,7 @@ public class TaskController {
         Task newTask = new Task();
         newTask.setTaskType(TaskType.TASK);
         model.addAttribute("newTask", newTask);
-
+        model.addAttribute("statuses", Enums.Status.getAllStatuses());
         return "usersProjectTasks";
     }
     
@@ -152,6 +153,7 @@ public class TaskController {
 
         model.addAttribute("comments", comments);
         model.addAttribute("currentTask", currentTask);
+        model.addAttribute("statuses", Enums.Status.getAllStatuses());
         return "taskDetails";
     }
 

@@ -502,6 +502,7 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/sidebar.js"></script>
+<script src="/js/authFetch.js"></script>
 <script>
 	function enableEdit() {
 	  document.getElementById("description-view").classList.add("d-none");
@@ -592,25 +593,21 @@
 
 	  const newDescription =
 	      document.getElementById("description-textarea").value;
-		
-	  fetch(`/task/${taskId}`, {
+
+	  authFetch(`/task/${taskId}`, {
 	    method: "PATCH",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      description: newDescription
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
-	      document.getElementById("description-view").innerText =
-	          newDescription || "Click to add description...";
+	  .then(() => {
+	    document.getElementById("description-view").innerText =
+	        newDescription || "Click to add description...";
 
-	      cancelEdit();
-	    } else {
-	      alert("Failed to update description");
-	    }
+	    cancelEdit();
+	  })
+	  .catch(() => {
+	    alert("Failed to update description");
 	  });
 	}
 </script>
@@ -619,38 +616,32 @@
   
   function updateStatus(newStatus) {
 
-    fetch(`/task/${taskId}`, {
+    authFetch(`/task/${taskId}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json"
-      },
       body: JSON.stringify({
         status: newStatus
       })
     })
-    .then(response => {
-      if (response.ok) {
+    .then(() => {
 
-        const button = document.getElementById("statusButton");
-        const text = document.getElementById("statusText");
+      const button = document.getElementById("statusButton");
+      const text = document.getElementById("statusText");
 
-        text.innerText = formatStatus(newStatus);
+      text.innerText = formatStatus(newStatus);
 
-        // remove old color classes
-        button.classList.remove("btn-success", "btn-primary", "btn-secondary");
+      button.classList.remove("btn-success", "btn-primary", "btn-secondary");
 
-        // apply new color
-        if (newStatus === "DONE") {
-          button.classList.add("btn-success");
-        } else if (newStatus === "IN_PROGRESS") {
-          button.classList.add("btn-primary");
-        } else {
-          button.classList.add("btn-secondary");
-        }
-
+      if (newStatus === "DONE") {
+        button.classList.add("btn-success");
+      } else if (newStatus === "IN_PROGRESS") {
+        button.classList.add("btn-primary");
       } else {
-        alert("Failed to update status");
+        button.classList.add("btn-secondary");
       }
+
+    })
+    .catch(() => {
+      alert("Failed to update status");
     });
   }
 </script>
@@ -664,21 +655,17 @@
 	    return;
 	  }
 
-	  fetch(`/comments/add/${taskId}`, {
+	  authFetch(`/comments/add/${taskId}`, {
 	    method: "POST",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      content: content
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
-	      location.reload(); // simplest for now
-	    } else {
-	      alert("Failed to add comment");
-	    }
+	  .then(() => {
+	    location.reload();
+	  })
+	  .catch(() => {
+	    alert("Failed to add comment");
 	  });
 	}
 
@@ -687,34 +674,30 @@
 	  const content =
 	      document.getElementById("comment-textarea-" + commentId).value;
 
-	  fetch(`/comments/update/${commentId}`, {
+	  authFetch(`/comments/update/${commentId}`, {
 	    method: "PATCH",
-	    headers: { "Content-Type": "application/json" },
 	    body: JSON.stringify({ content: content })
 	  })
-	  .then(response => {
-	    if(response.ok) {
-	      document.getElementById("comment-view-" + commentId)
-	              .innerText = content;
-	      cancelCommentEdit(commentId);
-	    } else {
-	      alert("Failed to update comment");
-	    }
+	  .then(() => {
+	    document.getElementById("comment-view-" + commentId).innerText = content;
+	    cancelCommentEdit(commentId);
+	  })
+	  .catch(() => {
+	    alert("Failed to update comment");
 	  });
 	}
 
 	function deleteComment(commentId) {
 
-	  fetch(`/comments/delete/${commentId}`, {
+	  authFetch(`/comments/delete/${commentId}`, {
 	    method: "DELETE"
 	  })
-	  .then(response => {
-	    if(response.ok) {
-	      document.getElementById("comment-view-" + commentId)
-	              .parentElement.remove();
-	    } else {
-	      alert("Failed to delete comment");
-	    }
+	  .then(() => {
+	    document.getElementById("comment-view-" + commentId)
+	            .parentElement.remove();
+	  })
+	  .catch(() => {
+	    alert("Failed to delete comment");
 	  });
 	}
 
@@ -723,44 +706,40 @@
 	  const select = document.getElementById("priority-select");
 	  const newPriority = select.value || null;
 
-	  fetch(`/task/${taskId}`, {
+	  authFetch(`/task/${taskId}`, {
 	    method: "PATCH",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      priority: newPriority
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
+	  .then(() => {
 
-	      const view = document.getElementById("priority-view");
+	    const view = document.getElementById("priority-view");
 
-	      if (!newPriority) {
-	        view.innerHTML = '<span class="text-muted">Select Priority</span>';
-	      } else {
+	    if (!newPriority) {
+	      view.innerHTML = '<span class="text-muted">Select Priority</span>';
+	    } else {
 
-	        let badgeClass = "bg-secondary";
+	      let badgeClass = "bg-secondary";
 
-	        if (newPriority === "HIGH") {
-	          badgeClass = "bg-danger";
-	        } else if (newPriority === "MEDIUM") {
-	          badgeClass = "bg-warning text-dark";
-	        }
-
-	        view.innerHTML =
-	          `<span class="badge ${badgeClass}">
-	              ${newPriority}
-	           </span>`;
+	      if (newPriority === "HIGH") {
+	        badgeClass = "bg-danger";
+	      } else if (newPriority === "MEDIUM") {
+	        badgeClass = "bg-warning text-dark";
 	      }
 
-	      document.getElementById("priority-edit").classList.add("d-none");
-	      view.classList.remove("d-none");
-
-	    } else {
-	      alert("Failed to update priority");
+	      view.innerHTML =
+	        `<span class="badge ${badgeClass}">
+	            ${newPriority}
+	         </span>`;
 	    }
+
+	    document.getElementById("priority-edit").classList.add("d-none");
+	    view.classList.remove("d-none");
+
+	  })
+	  .catch(() => {
+	    alert("Failed to update priority");
 	  });
 	}
 
@@ -769,39 +748,34 @@
 	  const newDate =
 	      document.getElementById("dueDate-input").value;
 
-	  fetch(`/task/${taskId}`, {
+	  authFetch(`/task/${taskId}`, {
 	    method: "PATCH",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      dueDate: newDate || null
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
+	  .then(() => {
 
-	      const viewDiv = document.getElementById("dueDate-view");
+	    const viewDiv = document.getElementById("dueDate-view");
 
-	      if (newDate) {
-	        viewDiv.innerText =
-	            new Date(newDate).toLocaleDateString('en-GB', {
-	              day: '2-digit',
-	              month: 'short',
-	              year: 'numeric'
-	            });
-	      } else {
-	        viewDiv.innerHTML =
-	            '<span class="text-muted">Set due date</span>';
-	      }
-
-	      document.getElementById("dueDate-edit")
-	              .classList.add("d-none");
-	      viewDiv.classList.remove("d-none");
-
+	    if (newDate) {
+	      viewDiv.innerText =
+	          new Date(newDate).toLocaleDateString('en-GB', {
+	            day: '2-digit',
+	            month: 'short',
+	            year: 'numeric'
+	          });
 	    } else {
-	      alert("Failed to update due date");
+	      viewDiv.innerHTML =
+	          '<span class="text-muted">Set due date</span>';
 	    }
+
+	    document.getElementById("dueDate-edit").classList.add("d-none");
+	    viewDiv.classList.remove("d-none");
+
+	  })
+	  .catch(() => {
+	    alert("Failed to update due date");
 	  });
 	}
 	
@@ -810,39 +784,34 @@
 	  const newDate =
 	      document.getElementById("startDate-input").value;
 
-	  fetch(`/task/${taskId}`, {
+	  authFetch(`/task/${taskId}`, {
 	    method: "PATCH",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      startDate: newDate || null
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
+	  .then(() => {
 
-	      const viewDiv = document.getElementById("startDate-view");
+	    const viewDiv = document.getElementById("startDate-view");
 
-	      if (newDate) {
-	        viewDiv.innerText =
-	            new Date(newDate).toLocaleDateString('en-GB', {
-	              day: '2-digit',
-	              month: 'short',
-	              year: 'numeric'
-	            });
-	      } else {
-	        viewDiv.innerHTML =
-	            '<span class="text-muted">Set start date</span>';
-	      }
-
-	      document.getElementById("startDate-edit")
-	              .classList.add("d-none");
-	      viewDiv.classList.remove("d-none");
-
+	    if (newDate) {
+	      viewDiv.innerText =
+	          new Date(newDate).toLocaleDateString('en-GB', {
+	            day: '2-digit',
+	            month: 'short',
+	            year: 'numeric'
+	          });
 	    } else {
-	      alert("Failed to update start date");
+	      viewDiv.innerHTML =
+	          '<span class="text-muted">Set start date</span>';
 	    }
+
+	    document.getElementById("startDate-edit").classList.add("d-none");
+	    viewDiv.classList.remove("d-none");
+
+	  })
+	  .catch(() => {
+	    alert("Failed to update start date");
 	  });
 	}
 
@@ -851,21 +820,17 @@
 	  const value =
 	      document.getElementById("estimate-input").value;
 
-	  fetch(`/task/${taskId}`, {
+	  authFetch(`/task/${taskId}`, {
 	    method: "PATCH",
-	    headers: {
-	      "Content-Type": "application/json"
-	    },
 	    body: JSON.stringify({
 	      estimate: value || null
 	    })
 	  })
-	  .then(response => {
-	    if (response.ok) {
-	      location.reload(); // easier for now after parsing
-	    } else {
-	      alert("Invalid estimate format");
-	    }
+	  .then(() => {
+	    location.reload();
+	  })
+	  .catch(() => {
+	    alert("Invalid estimate format");
 	  });
 	}
 	
