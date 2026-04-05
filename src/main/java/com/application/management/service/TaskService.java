@@ -1,10 +1,10 @@
 package com.application.management.service;
 
 import java.util.List;
+import java.util.Map;
 
 import com.application.management.model.Project;
 import com.application.management.model.Task;
-import com.application.management.utils.Enums.TaskType;
 
 public interface TaskService {
 
@@ -14,7 +14,9 @@ public interface TaskService {
 
 	void deleteTask(Long id);
 
-	List<Task> getTasksForUser(Project project, TaskType type);
+	List<Task> getTasksForUser(Project project);
 
 	List<Task> getChildTasksByParentTaskId(Task task);
+	
+	public void updateTask(Long taskId, Map<String, Object> updates);
 }

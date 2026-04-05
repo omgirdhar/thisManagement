@@ -4,8 +4,10 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.application.management.utils.Enums.Priority;
 import com.application.management.utils.Enums.TaskType;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
@@ -31,6 +33,8 @@ public class Task {
 
     private LocalDate dueDate;
     
+    private LocalDate startDate;
+    
     @ManyToOne
     @JoinColumn(name = "assignee_id")
     private User assignee;
@@ -53,8 +57,16 @@ public class Task {
     @OneToMany(mappedBy = "parentTask")
     private List<Task> subTasks = new ArrayList<>();
     
+    private String description;
+    
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comment> comments = new ArrayList<>();
+    
 //    New fields to Add
-//    priority 
+    private Priority  priority; 
+    
+    private Integer originalEstimateMinutes;
+
 //    created_at
 //    updated_at
 //    assigned_to
@@ -154,5 +166,45 @@ public class Task {
 
 	public void setCreatedBy(User createdBy) {
 		this.createdBy = createdBy;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public List<Comment> getComments() {
+		return comments;
+	}
+
+	public void setComments(List<Comment> comments) {
+		this.comments = comments;
+	}
+
+	public Priority getPriority() {
+		return priority;
+	}
+
+	public void setPriority(Priority priority) {
+		this.priority = priority;
+	}
+
+	public LocalDate getStartDate() {
+		return startDate;
+	}
+
+	public void setStartDate(LocalDate startDate) {
+		this.startDate = startDate;
+	}
+
+	public Integer getOriginalEstimateMinutes() {
+		return originalEstimateMinutes;
+	}
+
+	public void setOriginalEstimateMinutes(Integer originalEstimateMinutes) {
+		this.originalEstimateMinutes = originalEstimateMinutes;
 	}        
 }

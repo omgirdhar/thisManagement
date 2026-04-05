@@ -1,23 +1,35 @@
 package com.application.management.controller;
 
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.application.management.dto.ProjectUserDTO;
+import com.application.management.dto.TaskEditDTO;
+import com.application.management.model.Comment;
 import com.application.management.model.Project;
 import com.application.management.model.Task;
 import com.application.management.model.User;
+import com.application.management.service.CommentService;
 import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
+import com.application.management.service.UserService;
+import com.application.management.utils.TimeFormatUtils;
 import com.application.management.utils.Enums.TaskType;
 
 
@@ -27,10 +39,14 @@ public class TaskController {
 
     private final ProjectService projectService;
     private final TaskService taskService;
+    private final CommentService commentService;
+    private final UserService userService;
 
-    TaskController(ProjectService projectService, TaskService taskService) {
+    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService) {
         this.projectService = projectService;
         this.taskService = taskService;
+        this.commentService = commentService;
+		this.userService = userService;
     }
 
     @GetMapping
@@ -42,7 +58,7 @@ public class TaskController {
         List<ProjectUserDTO> projectUsers = projectService.getProjectUsers(projectId);
         model.addAttribute("projectUsers", projectUsers);
         
-        List<Task> allTasks = taskService.getTasksForUser(project,TaskType.EPIC);
+        List<Task> allTasks = taskService.getTasksForUser(project);
         model.addAttribute("taskList", allTasks);
 
         Task newTask = new Task();
@@ -68,39 +84,56 @@ public class TaskController {
 
     @PostMapping("/update")
     public String updateTask(@PathVariable Long projectId,
-                             @ModelAttribute Task task) {
+                             @ModelAttribute Task taskForm,
+                             @RequestParam(required = false) Long parentTaskId,
+                             @RequestParam(required = false) String estimateInput) {
 
-        System.out.println("====== UPDATE TASK ======");
-        System.out.println("ID: " + task.getId());
-        System.out.println("Type: " + task.getTaskType());
-        System.out.println("Title: " + task.getTitle());
-        System.out.println("=========================");
+        Task existingTask = taskService.getTaskById(taskForm.getId());
+
+        existingTask.setTitle(taskForm.getTitle());
+        existingTask.setDescription(taskForm.getDescription());
+        existingTask.setStatus(taskForm.getStatus());
+        existingTask.setStartDate(taskForm.getStartDate());
+        existingTask.setDueDate(taskForm.getDueDate());
+        existingTask.setTaskType(taskForm.getTaskType());
+        existingTask.setPriority(taskForm.getPriority());
+
+        int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateInput);
+        existingTask.setOriginalEstimateMinutes(totalMinutes);
+	    
+        if (taskForm.getAssignee() != null && taskForm.getAssignee().getId() != null) {
+            User managedUser = userService.getUserById(taskForm.getAssignee().getId());
+            existingTask.setAssignee(managedUser);
+        } else {
+            existingTask.setAssignee(null);
+        }
+
+        if (parentTaskId != null) {
+            Task parent = taskService.getTaskById(parentTaskId);
+            existingTask.setParentTask(parent);
+        } else {
+            existingTask.setParentTask(null);
+        }
+
+        taskService.saveTask(existingTask);
 
         return "redirect:/projects/" + projectId + "/tasks";
     }
+    
+    @GetMapping("/{taskId}")
+    @ResponseBody
+    public ResponseEntity<TaskEditDTO> getTask(@PathVariable Long projectId,
+                                               @PathVariable Long taskId) {
 
+        Task task = taskService.getTaskById(taskId);
+        return ResponseEntity.ok(new TaskEditDTO(task));
+    }
 
     // Dummy delete
     @GetMapping("/delete/{taskId}")
     public String deleteTask(@PathVariable Long projectId, @PathVariable Long taskId) {
         System.out.println("Deleted Task: " + taskId + " from project: " + projectId);
         return "redirect:/projects/" + projectId + "/tasks";
-    }
-
-    // Dummy fetch for edit modal
-    @GetMapping("/taskDetails")
-    @ResponseBody
-    public Task getTaskDetails(@RequestParam Long taskId) {
-        User alice = new User();
-        alice.setId(1L);
-        alice.setFirstName("Alice");
-        alice.setLastName("Smith");
-
-        Project project = new Project();
-        project.setId(1L);
-        project.setName("Project Alpha");
-
-        return new Task(taskId, "Sample Task", "PENDING", LocalDate.now().plusDays(7), alice, project);
     }
     
     @GetMapping("/details/{taskId}")
@@ -115,6 +148,9 @@ public class TaskController {
         	List<Task> childTasks = taskService.getChildTasksByParentTaskId(currentTask);
         	model.addAttribute("childTasks", childTasks);
         }
+		List<Comment> comments = commentService.getCommentsByTask(currentTask);
+
+        model.addAttribute("comments", comments);
         model.addAttribute("currentTask", currentTask);
         return "taskDetails";
     }
