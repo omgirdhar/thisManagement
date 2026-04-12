@@ -1,0 +1,80 @@
+<!-- SUBTASKS -->
+      <div th:if="${childTasks != null && !childTasks.isEmpty()}" class="mt-4">
+        <div class="card mb-4">
+          <div class="card-header bg-light fw-semibold">
+            Subtasks
+          </div>
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+				<tr>
+				    <th style="width: 10%;">ID</th>
+				    <th style="width: 70%;">Title</th>
+				    <th style="width: 10%;">Assignee</th>
+				    <th style="width: 10%;">Status</th>
+				  </tr>
+              </thead>
+              <tbody>
+                <tr th:each="task : ${childTasks}">
+                  <td >
+					<a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
+					                          projectId=${project.id},
+					                          taskId=${task.id})}"
+					                       th:text="${project.alias + '-' + task.id}">
+					                    </a>
+				  </td>
+				<td class="subtask-title-cell">		
+					<!-- VIEW MODE -->
+					<span th:id="'subtask-title-view-' + ${task.id}" style="cursor:pointer;" th:text="${task.title}"
+						th:onclick="'enableSubtaskTitleEdit(' + ${task.id} + ')'">
+					</span>
+				
+					<!-- EDIT MODE -->
+					<input type="text" th:id="'subtask-title-edit-' + ${task.id}" class="form-control form-control-sm d-none"
+						th:value="${task.title}" th:onblur="'handleSubtaskTitleBlur(' + ${task.id} + ')'"
+						th:onkeydown="'handleSubtaskTitleKey(event,' + ${task.id} + ')'">
+				</td>
+				<td>
+					<!-- VIEW MODE -->
+					<div th:id="'subtask-assignee-view-' + ${task.id}" style="cursor:pointer;"
+						th:onclick="'enableSubtaskAssigneeEdit(' + ${task.id} + ')'">
+				
+						<span th:text="${task.assignee != null 
+								          ? task.assignee.firstName + ' ' + task.assignee.lastName 
+								          : 'Unassigned'}">
+						</span>
+				
+					</div>				
+					<!-- EDIT MODE -->
+					<select th:id="'subtask-assignee-edit-' + ${task.id}" class="form-select form-select-sm d-none"
+						th:onchange="'updateSubtaskAssignee(' + ${task.id} + ', this.value)'">
+				
+						<option value="">Unassigned</option>
+				
+						<option th:each="user : ${projectUsers}" th:value="${user.userId}" th:text="${user.name}"
+							th:selected="${task.assignee != null and task.assignee.id == user.userId}">
+						</option>
+				
+					</select>
+				
+					</td>
+				<td>				
+					<!-- VIEW MODE -->
+					<span th:id="'subtask-status-view-' + ${task.id}" class="badge bg-secondary" style="cursor:pointer;"
+						th:text="${task.status}" th:onclick="'enableSubtaskStatusEdit(' + ${task.id} + ')'">
+					</span>
+				
+					<!-- EDIT MODE -->
+					<select th:id="'subtask-status-edit-' + ${task.id}" class="form-select form-select-sm d-none"
+						th:onchange="'updateSubtaskStatus(' + ${task.id} + ', this.value)'">				
+						<option th:each="status : ${statuses}" th:value="${status}" th:text="${status}"
+							th:selected="${task.status == status}">
+						</option>				
+					</select>				
+				</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>

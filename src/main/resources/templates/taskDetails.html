@@ -14,6 +14,13 @@
 	.accordion-button{
 		background-color: #fff !important;
 	}
+	
+	.subtask-title-cell {
+	  max-width: 250px;          /* adjust as needed */
+	  white-space: nowrap;
+	  overflow: hidden;
+	  text-overflow: ellipsis;
+	}
 </style>
 <body>
 
@@ -49,340 +56,31 @@
             <a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
                 projectId=${project.id},
                 taskId=${currentTask.parentTask.id})}"
-               th:text="${currentTask.parentTask.title}">
+               th:text="${project.alias +'-' +currentTask.parentTask.id}">
             </a>
           </li>
 
           <li class="breadcrumb-item active"
-              th:text="${currentTask.title}">
+              th:text="${project.alias +'-' +currentTask.id}">
           </li>
         </ol>
       </nav>
 
-      <!-- TITLE -->
-      <h2 class="fw-bold mb-3" th:text="${currentTask.title}"></h2>
+	<!-- TITLE -->
+	<!-- VIEW MODE -->
+	<h2 id="title-view" class="fw-bold mb-3" style="cursor:pointer;" onclick="enableTitleEditMain()"
+		th:text="${currentTask.title}">
+	</h2>
+	
+	<!-- EDIT MODE -->
+	<input type="text" id="title-edit" class="form-control form-control-lg d-none mb-3" th:value="${currentTask.title}"
+		onblur="handleTitleBlurMain()" onkeydown="handleTitleKeyMain(event)">
 
-      <!-- KEY DETAILS - COLLAPSIBLE -->
-      <div class="accordion" id="keyDetailsAccordion">
-        <div class="accordion-item">
-          <h3 class="accordion-header">
-            <button class="accordion-button fw-semibold" 
-                    type="button" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#keyDetailsCollapse"
-                    aria-expanded="true">
-              Key Details
-            </button>
-          </h3>
-          <div id="keyDetailsCollapse" 
-               class="accordion-collapse collapse show" 
-               data-bs-parent="#keyDetailsAccordion">
-            <div class="accordion-body">
-              
-              <!-- DESCRIPTION -->
-              <div class="mb-4">
-                <h6 class="text-muted fw-semibold">Description</h6>
+		<div th:replace="~{taskDetailSections/keyDetailSection}"></div>
 
-                <!-- VIEW MODE -->
-                <div id="description-view"
-                     class="p-3 border rounded bg-white"
-                     style="cursor:pointer;"
-                     onclick="enableEdit()"
-                     th:text="${currentTask.description} ?: 'Click to add description...'">
-                </div>
+      <div th:replace="~{taskDetailSections/subTaskTableSection}"></div>
 
-                <!-- EDIT MODE -->
-                <div id="description-edit" class="d-none mt-2">
-                  <textarea id="description-textarea"
-                            class="form-control"
-                            rows="4"
-                            th:text="${currentTask?.description}">
-                  </textarea>
-
-                  <div class="mt-2">
-                    <button class="btn btn-primary btn-sm"
-                            th:onclick="saveDescription([[${currentTask.id}]])">
-                      Save
-                    </button>
-                    <button class="btn btn-secondary btn-sm"
-                            onclick="cancelEdit()">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- META INFO GRID -->
-              <div class="mt-3">
-
-                <!-- Priority -->
-                <div class="d-flex py-2 border-bottom align-items-center">
-                  <div style="width: 200px;" class="text-muted">Priority</div>
-
-                  <!-- VIEW MODE -->
-                  <div id="priority-view"
-                       style="cursor:pointer;"
-                       onclick="enablePriorityEdit()">
-
-                    <!-- If priority exists -->
-                    <span th:if="${currentTask.priority != null}"
-                          class="badge"
-                          th:classappend="${currentTask.priority.name() == 'HIGH'} ? 'bg-danger' :
-                                          (${currentTask.priority.name() == 'MEDIUM'} ? 'bg-warning text-dark' :
-                                          'bg-secondary')"
-                          th:text="${currentTask.priority}">
-                    </span>
-
-                    <!-- If priority is null -->
-                    <span th:if="${currentTask.priority == null}"
-                          class="text-muted">
-                      Select Priority
-                    </span>
-
-                  </div>
-
-                  <!-- EDIT MODE -->
-                  <div id="priority-edit" class="d-none">
-                    <select id="priority-select"
-                            class="form-select form-select-sm"
-                            th:onchange="savePriority([[${currentTask.id}]])">
-
-                      <option value="" th:selected="${currentTask.priority == null}">
-                        No Priority
-                      </option>
-                      <option value="HIGH"
-                              th:selected="${currentTask.priority?.name() == 'HIGH'}">High</option>
-                      <option value="MEDIUM"
-                              th:selected="${currentTask.priority?.name() == 'MEDIUM'}">Medium</option>
-                      <option value="LOW"
-                              th:selected="${currentTask.priority?.name() == 'LOW'}">Low</option>
-                    </select>
-                  </div>
-                </div>
-
-                <!-- Due Date -->
-                <div class="d-flex py-2 border-bottom align-items-center">
-                  <div style="width: 200px;" class="text-muted">Due Date</div>
-
-                  <!-- VIEW MODE -->
-                  <div id="dueDate-view"
-                       style="cursor:pointer;"
-                       onclick="enableDueDateEdit()">
-
-                    <span th:if="${currentTask.dueDate != null}"
-                          th:text="${#temporals.format(currentTask.dueDate, 'dd MMM yyyy')}">
-                    </span>
-
-                    <span th:if="${currentTask.dueDate == null}"
-                          class="text-muted">
-                      Set due date
-                    </span>
-                  </div>
-
-                  <!-- EDIT MODE -->
-                  <div id="dueDate-edit" class="d-none">
-
-                    <input type="date"
-                           id="dueDate-input"
-                           class="form-control form-control-sm"
-                           th:value="${currentTask.dueDate}"
-                           th:onchange="saveDueDate([[${currentTask.id}]])">
-                  </div>
-                </div>
-
-                <!-- Start Date -->
-                <div class="d-flex py-2 border-bottom align-items-center">
-                  <div style="width: 200px;" class="text-muted">Start Date</div>
-
-                  <!-- VIEW MODE -->
-                  <div id="startDate-view"
-                       style="cursor:pointer;"
-                       onclick="enableStartDateEdit()">
-
-                    <span th:if="${currentTask.startDate != null}"
-                          th:text="${#temporals.format(currentTask.startDate, 'dd MMM yyyy')}">
-                    </span>
-
-                    <span th:if="${currentTask.startDate == null}"
-                          class="text-muted">
-                      Set start date
-                    </span>
-                  </div>
-
-                  <!-- EDIT MODE -->
-                  <div id="startDate-edit" class="d-none">
-
-                    <input type="date"
-                           id="startDate-input"
-                           class="form-control form-control-sm"
-                           th:value="${currentTask.startDate}"
-                           th:onchange="saveStartDate([[${currentTask.id}]])">
-                  </div>
-                </div>
-
-                <!-- Original Estimate -->
-                <div class="d-flex py-2 align-items-center">
-                  <div style="width: 200px;" class="text-muted">Original Estimate</div>
-
-                  <!-- VIEW MODE -->
-                  <div id="estimate-view"
-                       style="cursor:pointer;"
-                       onclick="enableEstimateEdit()">
-
-                    <span th:if="${currentTask.originalEstimateMinutes != null}"
-                          th:text="|${currentTask.originalEstimateMinutes / 60}h 
-                                   ${currentTask.originalEstimateMinutes % 60}m|">
-                    </span>
-
-                    <span th:if="${currentTask.originalEstimateMinutes == null}"
-                          class="text-muted">
-                      Set estimate
-                    </span>
-                  </div>
-
-                  <!-- EDIT MODE -->
-                  <div id="estimate-edit" class="d-none">
-
-                    <input type="text"
-                           id="estimate-input"
-                           class="form-control form-control-sm"
-                           placeholder="e.g. 2h 30m, 90m, 1.5h"
-                           th:value="${currentTask.originalEstimateMinutes != null ?
-                                     (currentTask.originalEstimateMinutes / 60) + 'h ' +
-                                     (currentTask.originalEstimateMinutes % 60) + 'm' : ''}"
-                           th:onchange="saveEstimate([[${currentTask.id}]])">
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SUBTASKS -->
-      <div th:if="${childTasks != null && !childTasks.isEmpty()}" class="mt-4">
-        <div class="card mb-4">
-          <div class="card-header bg-light fw-semibold">
-            Subtasks
-          </div>
-          <div class="card-body p-0">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Assignee</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr th:each="task : ${childTasks}">
-                  <td >
-					<a th:href="@{/projects/{projectId}/tasks/details/{taskId}(
-					                          projectId=${project.id},
-					                          taskId=${task.id})}"
-					                       th:text="${project.alias + '-' + task.id}">
-					                    </a>
-				  </td>
-                  <td th:text="${task.title}">
-                  </td>
-                  <td th:text="${task.assignee != null 
-                        ? task.assignee.firstName + ' ' + task.assignee.lastName 
-                        : 'Unassigned'}">
-                  </td>
-                  <td>
-                    <span class="badge bg-secondary"
-                          th:text="${task.status}">
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- COMMENTS - COLLAPSIBLE -->
-      <div class="accordion mt-3" id="commentsAccordion">
-        <div class="accordion-item">
-          <h3 class="accordion-header">
-            <button class="accordion-button fw-semibold" 
-                    type="button" 
-                    data-bs-toggle="collapse" 
-                    data-bs-target="#commentsCollapse"
-                    aria-expanded="true">
-              Comments
-            </button>
-          </h3>
-          <div id="commentsCollapse" 
-               class="accordion-collapse collapse show" 
-               data-bs-parent="#commentsAccordion">
-            <div class="accordion-body">
-              
-              <!-- Existing Comments -->
-              <div id="comments-container">
-                <div th:each="comment : ${comments}"
-                     class="border rounded p-2 mb-2">
-
-                  <small class="text-muted"
-                         th:text="${comment.author.firstName + ' ' + comment.author.lastName}">
-                  </small>
-
-                  <!-- VIEW MODE -->
-                  <div th:id="'comment-view-' + ${comment.id}"
-                       th:text="${comment.content}"
-                       style="cursor:pointer;"
-                       th:onclick="'enableCommentEdit(' + ${comment.id} + ')'">
-                  </div>
-
-                  <!-- EDIT MODE -->
-                  <div th:id="'comment-edit-' + ${comment.id}"
-                       class="d-none">
-
-                    <textarea class="form-control mb-2"
-                              th:id="'comment-textarea-' + ${comment.id}"
-                              th:text="${comment.content}">
-                    </textarea>
-
-                    <button class="btn btn-sm btn-primary"
-                            th:onclick="'saveComment(' + ${comment.id} + ')'">
-                      Save
-                    </button>
-
-                    <button class="btn btn-sm btn-secondary"
-                            th:onclick="'cancelCommentEdit(' + ${comment.id} + ')'">
-                      Cancel
-                    </button>
-
-                    <!-- Delete only if logged in user is author -->
-                    <button class="btn btn-sm btn-danger"
-                            th:if="${comment.author.email == #authentication.principal.username}"
-                            th:onclick="'deleteComment(' + ${comment.id} + ')'">
-                      Delete
-                    </button>
-                  </div>
-
-                </div>
-              </div>
-
-              <!-- Add Comment -->
-              <textarea id="new-comment"
-                        class="form-control mb-2"
-                        rows="3"
-                        placeholder="Add a comment..."></textarea>
-
-              <button class="btn btn-primary btn-sm"
-                      th:onclick="'addComment(' + ${currentTask.id} + ')'">
-                Add Comment
-              </button>
-
-            </div>
-          </div>
-        </div>
-      </div>
+	  <div th:replace="~{taskDetailSections/commentSection}"></div>
 
     </div>
 
@@ -610,6 +308,144 @@
 	    alert("Failed to update description");
 	  });
 	}
+	
+	function enableTitleEditMain() {
+	  document.getElementById("title-view").classList.add("d-none");
+	  const input = document.getElementById("title-edit");
+	  input.classList.remove("d-none");
+	  input.focus();
+	  input.select();
+	}
+
+	function closeTitleEditMain() {
+	  document.getElementById("title-edit").classList.add("d-none");
+	  document.getElementById("title-view").classList.remove("d-none");
+	}
+
+	function handleTitleKeyMain(event) {
+	  if (event.key === "Enter") updateTitleMain();
+	  if (event.key === "Escape") closeTitleEditMain();
+	}
+
+	function handleTitleBlurMain() {
+
+	  const input = document.getElementById("title-edit");
+	  const newValue = input.value.trim();
+	  const oldValue = document.getElementById("title-view").innerText;
+
+	  if (!newValue || newValue === oldValue) {
+		input.value = oldValue;
+	    closeTitleEditMain();
+	    return;
+	  }
+
+	  updateTitleMain();
+	}
+	
+	function updateTitleMain() {
+	  const input = document.getElementById("title-edit");
+	  const newTitle = input.value;
+
+	  authFetch(`/task/${taskId}`, {
+	    method: "PATCH",
+	    body: JSON.stringify({ title: newTitle })
+	  })
+	  .then(() => {
+	    document.getElementById("title-view").innerText = newTitle;
+	    closeTitleEditMain();
+	  })
+	  .catch(() => {
+	    alert("Failed to update title");
+	  });
+	}
+	let activeSubtaskTitleEditor = null;
+
+	function enableSubtaskTitleEdit(taskId) {
+
+	  if (activeSubtaskTitleEditor && activeSubtaskTitleEditor !== taskId) {
+	    closeSubtaskTitleEdit(activeSubtaskTitleEditor);
+	  }
+
+	  activeSubtaskTitleEditor = taskId;
+
+	  const view = document.getElementById("subtask-title-view-" + taskId);
+	  const input = document.getElementById("subtask-title-edit-" + taskId);
+
+	  view.classList.add("d-none");
+	  input.classList.remove("d-none");
+
+	  input.focus();
+	  input.select();
+	}
+
+	function closeSubtaskTitleEdit(taskId) {
+	  const view = document.getElementById("subtask-title-view-" + taskId);
+	  const input = document.getElementById("subtask-title-edit-" + taskId);
+
+	  if (!view || !input) return;
+
+	  input.classList.add("d-none");
+	  view.classList.remove("d-none");
+
+	  activeSubtaskTitleEditor = null;
+	}
+
+	function handleSubtaskTitleKey(event, taskId) {
+	  if (event.key === "Enter") updateSubtaskTitle(taskId);
+	  if (event.key === "Escape") closeSubtaskTitleEdit(taskId);
+	}
+	
+	function handleSubtaskTitleBlur(taskId) {
+
+	  const input = document.getElementById("subtask-title-edit-" + taskId);
+	  const view = document.getElementById("subtask-title-view-" + taskId);
+
+	  const newValue = input.value.trim();
+	  const oldValue = view.innerText.trim();
+
+	  if (!newValue || newValue === oldValue) {
+	    input.value = oldValue;
+	    closeSubtaskTitleEdit(taskId);
+	    return;
+	  }
+
+	  updateSubtaskTitle(taskId);
+	}
+
+	function updateSubtaskTitle(taskId) {
+
+	  const input = document.getElementById("subtask-title-edit-" + taskId);
+	  const newTitle = input.value;
+
+	  authFetch(`/task/${taskId}`, {
+	    method: "PATCH",
+	    body: JSON.stringify({ title: newTitle })
+	  })
+	  .then(() => {
+
+	    const view = document.getElementById("subtask-title-view-" + taskId);
+	    view.innerText = newTitle;
+
+	    closeSubtaskTitleEdit(taskId);
+
+	  })
+	  .catch(() => {
+	    alert("Failed to update title");
+	  });
+	}
+	document.addEventListener("click", function (event) {
+
+	  if (!activeSubtaskTitleEditor) return;
+
+	  const view = document.getElementById("subtask-title-view-" + activeSubtaskTitleEditor);
+	  const input = document.getElementById("subtask-title-edit-" + activeSubtaskTitleEditor);
+
+	  if (!view || !input) return;
+
+	  if (!input.contains(event.target) && !view.contains(event.target)) {
+	    closeSubtaskTitleEdit(activeSubtaskTitleEditor);
+	  }
+	});
 </script>
 <script th:inline="javascript">
   var taskId = /*[[${currentTask.id}]]*/ 0;
@@ -835,5 +671,145 @@
 	}
 	
 </script>
+<script>
+	let activeSubtaskStatusEditor = null;
+
+	function enableSubtaskStatusEdit(taskId) {
+
+	  if (activeSubtaskStatusEditor && activeSubtaskStatusEditor !== taskId) {
+	    closeSubtaskStatusEdit(activeSubtaskStatusEditor);
+	  }
+
+	  activeSubtaskStatusEditor = taskId;
+
+	  document.getElementById("subtask-status-view-" + taskId)
+	    .classList.add("d-none");
+
+	  const select = document.getElementById("subtask-status-edit-" + taskId);
+	  select.classList.remove("d-none");
+	  select.focus();
+	}
+
+	function closeSubtaskStatusEdit(taskId) {
+
+	  const view = document.getElementById("subtask-status-view-" + taskId);
+	  const select = document.getElementById("subtask-status-edit-" + taskId);
+
+	  if (!view || !select) return;
+
+	  select.classList.add("d-none");
+	  view.classList.remove("d-none");
+
+	  activeSubtaskStatusEditor = null;
+	}
+
+	function updateSubtaskStatus(taskId, newStatus) {
+
+	  authFetch(`/task/${taskId}`, {
+	    method: "PATCH",
+	    body: JSON.stringify({ status: newStatus })
+	  })
+	  .then(() => {
+
+	    const view = document.getElementById("subtask-status-view-" + taskId);
+
+	    view.innerText = newStatus;
+
+	    view.classList.remove("bg-success", "bg-primary", "bg-secondary");
+
+	    if (newStatus === "COMPLETED" || newStatus === "DONE") {
+	      view.classList.add("badge", "bg-success");
+	    } else if (newStatus === "IN_PROGRESS") {
+	      view.classList.add("badge", "bg-primary");
+	    } else {
+	      view.classList.add("badge", "bg-secondary");
+	    }
+
+	    closeSubtaskStatusEdit(taskId);
+
+	  })
+	  .catch(() => {
+	    alert("Failed to update status");
+	  });
+	}
+</script>
+<script>
+	let activeSubtaskAssigneeEditor = null;
+
+	function enableSubtaskAssigneeEdit(taskId) {
+
+	  if (activeSubtaskAssigneeEditor && activeSubtaskAssigneeEditor !== taskId) {
+	    closeSubtaskAssigneeEdit(activeSubtaskAssigneeEditor);
+	  }
+
+	  activeSubtaskAssigneeEditor = taskId;
+
+	  document.getElementById("subtask-assignee-view-" + taskId)
+	    .classList.add("d-none");
+
+	  const select = document.getElementById("subtask-assignee-edit-" + taskId);
+	  select.classList.remove("d-none");
+	  select.focus();
+	}
+
+	function closeSubtaskAssigneeEdit(taskId) {
+
+	  const view = document.getElementById("subtask-assignee-view-" + taskId);
+	  const select = document.getElementById("subtask-assignee-edit-" + taskId);
+
+	  if (!view || !select) return;
+
+	  select.classList.add("d-none");
+	  view.classList.remove("d-none");
+
+	  activeSubtaskAssigneeEditor = null;
+	}
+
+	function updateSubtaskAssignee(taskId, userId) {
+
+	  authFetch(`/task/${taskId}`, {
+	    method: "PATCH",
+	    body: JSON.stringify({
+	      assigneeId: userId || null
+	    })
+	  })
+	  .then(() => {
+	    location.reload(); // simplest (same as your main page)
+	  })
+	  .catch(() => {
+	    alert("Failed to update assignee");
+	  });
+	}
+</script>
+<script>
+	document.addEventListener("click", function (event) {
+
+	  // STATUS
+	  if (activeSubtaskStatusEditor) {
+	    const view = document.getElementById("subtask-status-view-" + activeSubtaskStatusEditor);
+	    const select = document.getElementById("subtask-status-edit-" + activeSubtaskStatusEditor);
+
+	    if (view && select &&
+	        !select.contains(event.target) &&
+	        !view.contains(event.target)) {
+	      closeSubtaskStatusEdit(activeSubtaskStatusEditor);
+	    }
+	  }
+
+	  // ASSIGNEE
+	  if (activeSubtaskAssigneeEditor) {
+	    const view = document.getElementById("subtask-assignee-view-" + activeSubtaskAssigneeEditor);
+	    const select = document.getElementById("subtask-assignee-edit-" + activeSubtaskAssigneeEditor);
+
+	    if (view && select &&
+	        !select.contains(event.target) &&
+	        !view.contains(event.target)) {
+	      closeSubtaskAssigneeEdit(activeSubtaskAssigneeEditor);
+	    }
+	  }
+
+	});
+</script>
+	
 </body>
 </html>

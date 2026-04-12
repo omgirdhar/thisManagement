@@ -1,0 +1,78 @@
+<!-- COMMENTS - COLLAPSIBLE -->
+      <div class="accordion mt-3" id="commentsAccordion">
+        <div class="accordion-item">
+          <h3 class="accordion-header">
+            <button class="accordion-button fw-semibold" 
+                    type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#commentsCollapse"
+                    aria-expanded="true">
+              Comments
+            </button>
+          </h3>
+          <div id="commentsCollapse" 
+               class="accordion-collapse collapse show" 
+               data-bs-parent="#commentsAccordion">
+            <div class="accordion-body">
+              
+              <!-- Existing Comments -->
+              <div id="comments-container">
+                <div th:each="comment : ${comments}"
+                     class="border rounded p-2 mb-2">
+
+                  <small class="text-muted"
+                         th:text="${comment.author.firstName + ' ' + comment.author.lastName}">
+                  </small>
+
+                  <!-- VIEW MODE -->
+                  <div th:id="'comment-view-' + ${comment.id}"
+                       th:text="${comment.content}"
+                       style="cursor:pointer;"
+                       th:onclick="'enableCommentEdit(' + ${comment.id} + ')'">
+                  </div>
+
+                  <!-- EDIT MODE -->
+                  <div th:id="'comment-edit-' + ${comment.id}"
+                       class="d-none">
+
+                    <textarea class="form-control mb-2"
+                              th:id="'comment-textarea-' + ${comment.id}"
+                              th:text="${comment.content}">
+                    </textarea>
+
+                    <button class="btn btn-sm btn-primary"
+                            th:onclick="'saveComment(' + ${comment.id} + ')'">
+                      Save
+                    </button>
+
+                    <button class="btn btn-sm btn-secondary"
+                            th:onclick="'cancelCommentEdit(' + ${comment.id} + ')'">
+                      Cancel
+                    </button>
+
+                    <!-- Delete only if logged in user is author -->
+                    <button class="btn btn-sm btn-danger"
+                            th:if="${comment.author.email == #authentication.principal.username}"
+                            th:onclick="'deleteComment(' + ${comment.id} + ')'">
+                      Delete
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+
+              <!-- Add Comment -->
+              <textarea id="new-comment"
+                        class="form-control mb-2"
+                        rows="3"
+                        placeholder="Add a comment..."></textarea>
+
+              <button class="btn btn-primary btn-sm"
+                      th:onclick="'addComment(' + ${currentTask.id} + ')'">
+                Add Comment
+              </button>
+
+            </div>
+          </div>
+        </div>
+      </div>
