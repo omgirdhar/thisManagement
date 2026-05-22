@@ -3,9 +3,12 @@ package com.application.management.model;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+import com.application.management.utils.Enums.ProjectStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -22,7 +25,8 @@ public class Project {
 
     private String name;
     private String alias;
-    private String status;   // ACTIVE / INACTIVE
+    @Enumerated(EnumType.STRING)
+    private ProjectStatus status;
     private LocalDateTime createdOn = LocalDateTime.now();
     
     @JsonIgnore
@@ -47,10 +51,10 @@ public class Project {
 	public void setAlias(String alias) {
 		this.alias = alias;
 	}
-	public String getStatus() {
+	public ProjectStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(ProjectStatus status) {
 		this.status = status;
 	}
 	public LocalDateTime getCreatedOn() {

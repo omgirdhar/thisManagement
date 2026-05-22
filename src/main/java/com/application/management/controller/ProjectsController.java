@@ -16,6 +16,7 @@ import org.springframework.web.servlet.ModelAndView;
 import com.application.management.dto.ProjectUserDTO;
 import com.application.management.model.Project;
 import com.application.management.service.ProjectService;
+import com.application.management.utils.Enums;
 
 @Controller
 public class ProjectsController {
@@ -35,6 +36,7 @@ public class ProjectsController {
             view = new ModelAndView("projects"); // admin page
             view.addObject("newProject", new Project());
             view.addObject("projectList", projectService.getAllProjects());
+            view.addObject("projectStatus",Enums.ProjectStatus.getProjectStatus());
         } else {
             view = new ModelAndView("usersProject"); // user page
             view.addObject("projectList", projectService.getAllProjectsForUser());

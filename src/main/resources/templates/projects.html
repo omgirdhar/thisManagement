@@ -92,8 +92,8 @@
 	          <div class="col-md-6">
 	            <select class="form-select" th:field="*{status}" required>
 				  <option value="">Select Status</option>
-	              <option value="ACTIVE">ACTIVE</option>
-	              <option value="INACTIVE">INACTIVE</option>
+				  <option th:each="status : ${projectStatus}" th:value="${status}" th:text="${status}"></option>
+
 	            </select>
 	          </div>
 	        </div>
@@ -130,8 +130,7 @@
           <input class="form-control mb-2" id="editAlias" name="alias">
 
           <select class="form-select" id="editStatus" name="status">
-            <option value="ACTIVE">ACTIVE</option>
-            <option value="INACTIVE">INACTIVE</option>
+            <option th:each="status : ${projectStatus}" th:value="${status}" th:text="${status}"></option>
           </select>
         </div>
 
