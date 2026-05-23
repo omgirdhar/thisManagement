@@ -6,13 +6,6 @@ import org.jspecify.annotations.Nullable;
 
 public class Enums {
 
-	public enum TaskType {
-	    EPIC,
-	    STORY,
-	    TASK,
-	    SUB_TASK
-	}
-	
 	public enum Priority {
 	    HIGH,
 	    MEDIUM,

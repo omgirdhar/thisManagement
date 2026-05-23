@@ -144,7 +144,7 @@
 			    </select>
 
 			  </td>
-		      <td th:text="${task.taskType}"></td>
+		      <td th:text="${task.taskType.name}"></td>
 		      <td>
 		        <button class="btn btn-sm btn-primary"
 		                th:onclick="openEditModal([[${task.id}]])">
@@ -178,13 +178,12 @@
 		  <div class="mb-3">
 		    <label class="form-label fw-semibold">Task Type</label>
 		    <select class="form-select"
-		            th:field="*{taskType}"
-		            required>
-		      <option value="">Select Type</option>
-		      <option value="EPIC">Epic</option>
-		      <option value="STORY">Story</option>
-		      <option value="TASK">Task</option>
-		      <option value="SUB_TASK">Sub-task</option>
+		           name="taskType" required>
+					<option value="">No Type</option>
+					<option th:each="type : ${taskTypes}"
+					        th:value="${type.id}"
+					        th:text="${type.name}">
+					</option>
 		    </select>
 		  </div>
 
@@ -304,6 +303,7 @@
 <script src="/js/authFetch.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
 <script>
 	$(document).ready(function () {
 		$('.task-table').DataTable({
@@ -322,16 +322,7 @@
 	let activeTitleEditor = null;
 
 	const taskTypeSelect = document.querySelector('[name="taskType"]');
-	const parentSelect = document.getElementById('parentTaskSelect');
-
-	taskTypeSelect.addEventListener('change', () => {
-		if (taskTypeSelect.value === 'SUB_TASK') {
-			parentSelect.required = true;
-		} else {
-			parentSelect.required = false;
-			parentSelect.value = '';
-		}
-	});
+	
 	
 	function openCreatePanel() {
 		const panel = document.getElementById("createPanel");
@@ -343,8 +334,8 @@
 
 		// Reset form to CREATE mode
 		document.getElementById("drawerTitle").innerText = "Create Task";
-		document.getElementById("taskForm")
-			.action = `/task/save`;
+		document.getElementById("taskForm").action =
+		  `/projects/${projectId}/tasks/save`;
 		document.getElementById("drawerSubmitBtn")
 			.innerText = "Create";
 
@@ -355,11 +346,19 @@
 	function closeCreatePanel() {
 		const panel = document.getElementById("createPanel");
 		const main = document.getElementById("mainContent");
-
+		const form = $("#taskForm");
+		
 		panel.classList.add("d-none");
 
 		main.classList.remove("col-lg-6");
 		main.classList.add("col-lg-10");
+		
+		form[0].reset();
+		if (form.data("validator")) {
+		   	form.validate().resetForm();
+		}
+		form.find(".is-invalid").removeClass("is-invalid");
+
 	}
 	
 	function enableStatusEdit(taskId) {
@@ -535,7 +534,7 @@
 				document.querySelector('[name="status"]').value = task.status || '';
 				document.querySelector('[name="startDate"]').value = task.startDate || '';
 				document.querySelector('[name="dueDate"]').value = task.dueDate || '';
-				document.querySelector('[name="taskType"]').value = task.taskType || '';
+				document.querySelector('[name="taskType"]').value = task.taskType.id || '';
 				document.querySelector('[name="parentTaskId"]').value =
 					task.parentTask ? task.parentTask.id : '';
 				document.querySelector('[name="assignee.id"]').value =
@@ -616,6 +615,83 @@
 			alert("Failed to update title");
 		});
 	}
+</script>
+<script th:inline="javascript">
+	function normalize(str) {
+	    return (str || "")
+	        .toLowerCase()
+	        .replace(/[\s-_]/g, "");
+	}
+
+	const taskTypes = /*[[${taskTypes}]]*/ [];
+
+
+</script>
+<script>
+
+	$("#taskForm").validate({
+
+	  rules: {
+	    title: {
+	      required: true,
+	      minlength: 3
+	    },
+
+	    taskType: {
+	      required: true
+	    },
+
+	    parentTaskId: {
+	      required: function () {
+
+	        const subTaskTypeId = taskTypes.find(t =>
+	          normalize(t.name).includes("subtask")
+	        )?.id;
+
+	        const selectedTaskTypeId =
+	          $("select[name='taskType']").val();
+
+	        return selectedTaskTypeId == subTaskTypeId;
+	      }
+	    },
+
+	    status: {
+	      required: true
+	    }
+	  },
+
+	  messages: {
+	    title: {
+	      required: "Title is required",
+	      minlength: "Title must be at least 3 characters"
+	    },
+
+	    taskType: {
+	      required: "Please select a task type"
+	    },
+
+	    parentTaskId: {
+	      required: "Parent task is required for Sub Task"
+	    },
+
+	    status: {
+	      required: "Status is required"
+	    }
+	  },
+
+	  errorClass: "is-invalid",
+
+	  errorPlacement: function (error, element) {
+	    error.addClass("text-danger small");
+	    error.insertAfter(element);
+	  }
+	});
+
+	$("select[name='taskType']").on("change", function () {
+
+	    // force re-check parentTaskId
+	    $("#taskForm").validate().element("select[name='parentTaskId']");
+	});
 </script>
 </body>
 </html>

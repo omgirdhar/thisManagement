@@ -21,18 +21,19 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.application.management.dto.ProjectUserDTO;
 import com.application.management.dto.TaskEditDTO;
+import com.application.management.dto.TaskTypeDTO;
 import com.application.management.model.Comment;
 import com.application.management.model.Project;
 import com.application.management.model.Task;
+import com.application.management.model.TaskType;
 import com.application.management.model.User;
 import com.application.management.service.CommentService;
 import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
+import com.application.management.service.TaskTypeService;
 import com.application.management.service.UserService;
 import com.application.management.utils.TimeFormatUtils;
 import com.application.management.utils.Enums;
-import com.application.management.utils.Enums.TaskType;
-
 
 @Controller
 @RequestMapping("/projects/{projectId}/tasks")
@@ -42,12 +43,14 @@ public class TaskController {
     private final TaskService taskService;
     private final CommentService commentService;
     private final UserService userService;
+    private final TaskTypeService taskTypeService; 
 
-    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService) {
+    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService, TaskTypeService taskTypeService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.commentService = commentService;
 		this.userService = userService;
+		this.taskTypeService = taskTypeService;
     }
 
     @GetMapping
@@ -62,8 +65,17 @@ public class TaskController {
         List<Task> allTasks = taskService.getTasksForUser(project);
         model.addAttribute("taskList", allTasks);
 
+//        List<TaskType> taskTypes = taskTypeService.getTaskTypesByProject(projectId);
+//        model.addAttribute("taskTypes", taskTypes);
+        List<TaskTypeDTO> taskTypes = taskTypeService.getTaskTypesByProject(projectId)
+        	    .stream()
+        	    .map(t -> new TaskTypeDTO(t.getId(), t.getName()))
+        	    .toList();
+
+        	model.addAttribute("taskTypes", taskTypes);
+        
         Task newTask = new Task();
-        newTask.setTaskType(TaskType.TASK);
+//        newTask.setTaskType(TaskType.TASK);
         model.addAttribute("newTask", newTask);
         model.addAttribute("statuses", Enums.Status.getAllStatuses());
         return "usersProjectTasks";
@@ -72,13 +84,33 @@ public class TaskController {
     @PostMapping("/save")
     public String saveTask(@PathVariable Long projectId,
                            @RequestParam(required = false) Long parentTaskId,
+                           @RequestParam(required = false) String estimateInput,
                            @ModelAttribute Task task) {
 
+    	Project project = projectService.getProjectById(projectId);
+        task.setProject(project);
+        if (task.getTaskType() != null && task.getTaskType().getId() != null) {
+            TaskType type = taskTypeService.getTaskTypeById(task.getTaskType().getId());
+            if(type != null) {
+                if (!type.getProject().getId().equals(project.getId())) {
+                    throw new RuntimeException("Invalid TaskType for this Project");
+                }
+            }else {
+            	throw new RuntimeException("TaskType not found");
+            }
+            task.setTaskType(type);
+        }
+        
+     // FIX: estimate handling
+        if (estimateInput != null && !estimateInput.isBlank()) {
+            int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateInput);
+            task.setOriginalEstimateMinutes(totalMinutes);
+        }
+        
         if (parentTaskId != null) {
             Task parent = taskService.getTaskById(parentTaskId);
             task.setParentTask(parent);
         }
-        task.setProject(projectService.getProjectById(projectId));
         taskService.saveTask(task);
         return "redirect:/projects/" + projectId + "/tasks";
     }
@@ -96,7 +128,17 @@ public class TaskController {
         existingTask.setStatus(taskForm.getStatus());
         existingTask.setStartDate(taskForm.getStartDate());
         existingTask.setDueDate(taskForm.getDueDate());
-        existingTask.setTaskType(taskForm.getTaskType());
+        if (taskForm.getTaskType() != null && taskForm.getTaskType().getId() != null) {
+            TaskType type = taskTypeService.getTaskTypeById(taskForm.getTaskType().getId());
+            if(type != null) {
+            	if (!type.getProject().getId().equals(existingTask.getProject().getId())) {
+                    throw new RuntimeException("Invalid TaskType for this Project");
+                }
+            }else {
+            	throw new RuntimeException("TaskType not found");
+            }
+            existingTask.setTaskType(type);
+        }
         existingTask.setPriority(taskForm.getPriority());
 
         int totalMinutes = TimeFormatUtils.parseEstimateToMinutes(estimateInput);
@@ -145,9 +187,10 @@ public class TaskController {
         model.addAttribute("project", project);
         
         Task currentTask = taskService.getTaskById(taskId);
-        if(currentTask.getTaskType() != TaskType.SUB_TASK) {
-        	List<Task> childTasks = taskService.getChildTasksByParentTaskId(currentTask);
-        	model.addAttribute("childTasks", childTasks);
+     // FIXED: subtask logic
+        if (currentTask.getParentTask() == null) {
+            List<Task> childTasks = taskService.getChildTasksByParentTaskId(currentTask);
+            model.addAttribute("childTasks", childTasks);
         }
 		List<Comment> comments = commentService.getCommentsByTask(currentTask);
 
@@ -155,27 +198,6 @@ public class TaskController {
         model.addAttribute("currentTask", currentTask);
         model.addAttribute("statuses", Enums.Status.getAllStatuses());
         return "taskDetails";
-    }
-
-    @GetMapping("/createSubTask")
-    public String createSubTask(@RequestParam Long parentId,
-                                @RequestParam Long projectId,
-                                Model model) {
-
-        // Dummy parent task
-        Task parent = new Task();
-        parent.setId(parentId);
-        parent.setTitle("Parent Task Title");
-
-        Task newTask = new Task();
-        newTask.setParentTask(parent);
-        newTask.setTaskType(TaskType.SUB_TASK); // automatically set
-
-        model.addAttribute("newTask", newTask);
-
-        // Use the same create modal page if you want
-        model.addAttribute("projectId", projectId);
-        return "usersProjectTasks"; // or redirect to modal
     }
 
 }

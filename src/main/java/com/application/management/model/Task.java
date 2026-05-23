@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.application.management.utils.Enums.Priority;
-import com.application.management.utils.Enums.TaskType;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -47,7 +47,8 @@ public class Task {
     @JoinColumn(name = "project_id")
     private Project project;
     
-    @Enumerated(EnumType.STRING)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_type_id")
     private TaskType taskType;
     
     @ManyToOne

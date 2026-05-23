@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title>Users | Admin</title>
+  <title>Projects | Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <!-- Bootstrap CSS -->
@@ -60,6 +60,10 @@
 	            <td th:text="${project.alias}"></td>
 	            <td th:text="${project.status}"></td>
 	            <td>
+					<a th:href="@{/projects/{id}/config(id=${project.id})}"
+					   class="btn btn-sm btn-dark">
+					  <i class="bi bi-gear"></i>
+					</a>
 	              <button class="btn btn-sm btn-primary"
 	                      th:onclick="openEditModal([[${project.id}]])">
 	                <i class="bi bi-pencil"></i>
