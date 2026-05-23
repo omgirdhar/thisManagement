@@ -3,6 +3,7 @@ package com.application.management.dto;
 import java.time.LocalDate;
 
 import com.application.management.model.Task;
+import com.application.management.model.TaskType;
 
 public class TaskEditDTO {
 
@@ -13,7 +14,7 @@ public class TaskEditDTO {
     private String priority;
     private LocalDate startDate;
     private LocalDate dueDate;
-    private String taskType;
+    private TaskType taskType;
     private Long parentTaskId;
     private Long assigneeId;
     private String estimateFormatted;
@@ -26,7 +27,7 @@ public class TaskEditDTO {
         this.priority = task.getPriority() != null ? task.getPriority().name() : null;
         this.startDate = task.getStartDate();
         this.dueDate = task.getDueDate();
-        this.taskType = task.getTaskType() != null ? task.getTaskType().name() : null;
+        this.taskType = task.getTaskType() != null ? task.getTaskType() : null;
         this.parentTaskId = task.getParentTask() != null ? task.getParentTask().getId() : null;
         this.assigneeId = task.getAssignee() != null ? task.getAssignee().getId() : null;
         if (task.getOriginalEstimateMinutes() != null) {
@@ -89,10 +90,10 @@ public class TaskEditDTO {
 	public void setDueDate(LocalDate dueDate) {
 		this.dueDate = dueDate;
 	}
-	public String getTaskType() {
+	public TaskType getTaskType() {
 		return taskType;
 	}
-	public void setTaskType(String taskType) {
+	public void setTaskType(TaskType taskType) {
 		this.taskType = taskType;
 	}
 	public Long getParentTaskId() {

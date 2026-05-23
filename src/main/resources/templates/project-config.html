@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Project Configuration</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/css/sidebar.css" rel="stylesheet">
+  </head>
+
+<body>
+	<!-- Navbar -->
+	<div th:replace="~{fragments/commonNavbar}"></div>
+
+<div class="container-fluid">
+	<div class="row">
+
+		<!-- Sidebar -->
+		    <div th:replace="~{fragments/commonSidebar}"></div>
+			
+  <!-- HEADER -->
+  <main class="col-lg-10 ms-auto p-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 th:text="${project.name} + ' - Configuration'"></h3>
+    <a href="/projects" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  <!-- TABS -->
+  <ul class="nav nav-tabs">
+
+    <li class="nav-item">
+      <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#taskTypes">
+        Task Types
+      </button>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#statuses">
+        Statuses
+      </button>
+    </li>
+
+    <li class="nav-item">
+      <button class="nav-link" data-bs-toggle="tab" data-bs-target="#workflow">
+        Workflow
+      </button>
+    </li>
+
+  </ul>
+
+  <!-- TAB CONTENT -->
+  <div class="tab-content mt-3">
+
+    <!-- TASK TYPES (ACTIVE) -->
+    <div class="tab-pane fade show active" id="taskTypes">
+
+      <!-- CREATE -->
+      <form th:action="@{/projects/{id}/config/task-types(id=${project.id})}"
+            method="post"
+            class="row g-2 mb-3">
+
+        <div class="col-md-6">
+          <input class="form-control"
+                 name="name"
+                 placeholder="Task Type Name"
+                 required>
+        </div>
+
+        <div class="col-md-3">
+          <button class="btn btn-success w-100">
+            <i class="bi bi-plus-circle"></i> Add
+          </button>
+        </div>
+      </form>
+
+      <!-- LIST -->
+      <table class="table table-bordered bg-white">
+        <thead class="table-dark">
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr th:each="t, stat : ${taskTypes}">
+            <td th:text="${stat.count}"></td>
+            <td th:text="${t.name}"></td>
+          </tr>
+        </tbody>
+      </table>
+
+    </div>
+
+    <!-- STATUS TAB (EMPTY FOR NOW) -->
+    <div class="tab-pane fade" id="statuses">
+      <div class="alert alert-info">
+        Status configuration coming next.
+      </div>
+    </div>
+
+    <!-- WORKFLOW TAB (EMPTY FOR NOW) -->
+    <div class="tab-pane fade" id="workflow">
+      <div class="alert alert-info">
+        Workflow configuration coming next.
+      </div>
+    </div>
+
+  </div>
+  </main>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/sidebar.js"></script>
+</body>
+</html>

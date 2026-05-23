@@ -15,15 +15,20 @@ import org.springframework.web.servlet.ModelAndView;
 
 import com.application.management.dto.ProjectUserDTO;
 import com.application.management.model.Project;
+import com.application.management.model.TaskType;
 import com.application.management.service.ProjectService;
+import com.application.management.service.TaskTypeService;
+import com.application.management.utils.Enums;
 
 @Controller
 public class ProjectsController {
 
     private final ProjectService projectService;
+    private final TaskTypeService taskTypeService;
 
-    public ProjectsController(ProjectService projectService) {
+    public ProjectsController(ProjectService projectService, TaskTypeService taskTypeService) {
         this.projectService = projectService;
+		this.taskTypeService = taskTypeService;
     }
 
     @GetMapping("/projects")
@@ -35,6 +40,7 @@ public class ProjectsController {
             view = new ModelAndView("projects"); // admin page
             view.addObject("newProject", new Project());
             view.addObject("projectList", projectService.getAllProjects());
+            view.addObject("projectStatus",Enums.ProjectStatus.getProjectStatus());
         } else {
             view = new ModelAndView("usersProject"); // user page
             view.addObject("projectList", projectService.getAllProjectsForUser());
@@ -90,4 +96,9 @@ public class ProjectsController {
         return view;
     }
 
+    @GetMapping("/projects/{projectId}/task-types")
+    @ResponseBody
+    public List<TaskType> getTaskTypes(@PathVariable Long projectId) {
+        return taskTypeService.getTaskTypesByProject(projectId);
+    }
 }
