@@ -36,7 +36,7 @@ public class UsersController {
     // SAVE USER
     @PostMapping("/saveUser")
     public String saveUser(@ModelAttribute("newUser") User user) {
-    	if (user.getId() == 0) { // new user
+    	if (user.getId() == null) { // new user
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
         userService.saveUser(user);

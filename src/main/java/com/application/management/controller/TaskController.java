@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.application.management.dto.CreateSubtaskRequest;
 import com.application.management.dto.ProjectUserDTO;
+import com.application.management.dto.SubtaskResponse;
 import com.application.management.dto.TaskEditDTO;
 import com.application.management.dto.TaskTypeDTO;
 import com.application.management.model.Comment;
@@ -186,6 +188,9 @@ public class TaskController {
     	Project project = projectService.getProjectById(projectId);
         model.addAttribute("project", project);
         
+        List<ProjectUserDTO> projectUsers = projectService.getProjectUsers(projectId);
+        model.addAttribute("projectUsers", projectUsers);
+        
         Task currentTask = taskService.getTaskById(taskId);
      // FIXED: subtask logic
         if (currentTask.getParentTask() == null) {
@@ -199,5 +204,29 @@ public class TaskController {
         model.addAttribute("statuses", Enums.Status.getAllStatuses());
         return "taskDetails";
     }
+
+	@PostMapping("/{taskId}/subtasks")
+	@ResponseBody
+	public ResponseEntity<SubtaskResponse> createSubtask(@PathVariable Long projectId, @PathVariable Long taskId,
+			@RequestBody CreateSubtaskRequest request) {
+
+		Task parent = taskService.getTaskById(taskId);
+
+		if (parent.getParentTask() != null) {
+			return ResponseEntity.badRequest().build();
+		}
+
+		Task subtask = new Task();
+
+		subtask.setTitle(request.getTitle());
+		subtask.setProject(parent.getProject());
+		subtask.setParentTask(parent);
+		subtask.setStatus(Enums.Status.TODO.name());
+		User currentUser = userService.getCurrentUser();
+	    subtask.setAssignee(currentUser);
+		taskService.saveTask(subtask);
+
+		return ResponseEntity.ok(new SubtaskResponse(subtask.getId(), subtask.getTitle(), subtask.getStatus()));
+	}
 
 }

@@ -49,46 +49,34 @@ public class ProjectServiceImpl implements ProjectService {
         projectRepository.deleteById(id);
     }
 
-    @Override
-    public List<ProjectUserDTO> getProjectUsers(Long projectId) {
+	@Override
+	public List<ProjectUserDTO> getProjectUsers(Long projectId) {
 
-        List<User> allUsers = userService.getAllUsers();
-        List<ProjectMember> assignedMembers =
-                projectMemberRepository.findByProjectId(projectId);
+		List<ProjectMember> assignedMembers = projectMemberRepository.findByProjectId(projectId);
 
-        Set<Long> assignedUserIds = assignedMembers.stream()
-                .map(pm -> pm.getUser().getId())
-                .collect(Collectors.toSet());
-
-        return allUsers.stream()
-                .map(user -> new ProjectUserDTO(
-                        user.getId(),
-                        user.getFirstName() + " " + user.getLastName(),
-                        assignedUserIds.contains(user.getId())
-                ))
-                .collect(Collectors.toList());
-    }
-
+		return assignedMembers.stream().map(pm -> pm.getUser()).distinct()
+				.map(user -> new ProjectUserDTO(user.getId(), user.getFirstName() + " " + user.getLastName(), true))
+				.toList();
+	}
 
 	@Override
 	@Transactional
 	public void assignUsers(Long projectId, List<Long> userIds) {
 
-	    Project project = projectRepository.findById(projectId)
-	            .orElseThrow();
+		Project project = projectRepository.findById(projectId).orElseThrow();
 
-	    projectMemberRepository.deleteByProject(project);
+		projectMemberRepository.deleteByProject(project);
 
-	    for (long userId : userIds) {
-	        User user = userService.getUserById(userId);
+		for (long userId : userIds) {
+			User user = userService.getUserById(userId);
 
-	        ProjectMember pm = new ProjectMember();
-	        pm.setProject(project);
-	        pm.setUser(user);
-	        pm.setActive(true);
+			ProjectMember pm = new ProjectMember();
+			pm.setProject(project);
+			pm.setUser(user);
+			pm.setActive(true);
 
-	        projectMemberRepository.save(pm);
-	    }
+			projectMemberRepository.save(pm);
+		}
 	}
 	
 	@Override

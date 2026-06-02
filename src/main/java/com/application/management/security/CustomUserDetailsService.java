@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     private final PasswordEncoder passwordEncoder;
 
     // Default admin credentials
-    private final String defaultAdminEmail = "admin@admin.com";
+    private final String defaultAdminEmail = "admin@gmail.com";
     private final String defaultAdminPassword = "admin123";
 
     public CustomUserDetailsService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
@@ -32,7 +32,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         // Check if the database has zero users
-        if (userRepository.count() == 0 && username.equalsIgnoreCase(defaultAdminEmail)) {
+        if (userRepository.count() == 0) {
             // Create default admin
             User admin = new User();
             admin.setFirstName("Super");
