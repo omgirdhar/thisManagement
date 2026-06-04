@@ -11,13 +11,6 @@ public class Enums {
 	    MEDIUM,
 	    LOW;	   	   
 	}
-	
-	public enum Status{
-		TODO,PENDING,IN_PROGRESS,DONE;
-		 public static List<Status> getAllStatuses() {
-		    	return List.of(TODO,PENDING,IN_PROGRESS,DONE);
-		    }
-	}
 
 	public enum ProjectStatus {
 	    ACTIVE,

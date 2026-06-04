@@ -14,17 +14,19 @@ import org.springframework.stereotype.Service;
 
 import com.application.management.model.Project;
 import com.application.management.model.Task;
+import com.application.management.model.TaskStatus;
 import com.application.management.model.User;
 
 @Service
 public class TaskServiceImpl implements TaskService{
 
     private final UserService userService;
-
+    private final TaskStatusService taskStatusService;
     private final TaskRepository taskRepository;
 
-    TaskServiceImpl(TaskRepository taskRepository, UserService userService) {
-        this.taskRepository = taskRepository;
+    TaskServiceImpl(TaskRepository taskRepository, UserService userService, TaskStatusService taskStatusService) {
+        this.taskStatusService = taskStatusService;
+		this.taskRepository = taskRepository;
         this.userService = userService;
     }
 
@@ -86,7 +88,10 @@ public class TaskServiceImpl implements TaskService{
 	        );
 	    }
 	    if (updates.containsKey("status")) {
-	        task.setStatus((String) updates.get("status"));
+	    	TaskStatus status = taskStatusService.getById(Long.parseLong((String)updates.get("status")));
+	    	if(status != null) {
+		        task.setStatus(status);	
+	    	}
 	    }
 	    if (updates.containsKey("assigneeId")) {
 	        Object assigneeIdObj = updates.get("assigneeId");

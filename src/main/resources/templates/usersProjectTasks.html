@@ -111,10 +111,7 @@
 
 			    <!-- VIEW MODE -->
 			    <span th:id="'status-view-' + ${task.id}"
-			          th:classappend="${task.status == 'COMPLETED'} ? 'badge bg-success' :
-			                          (${task.status == 'IN_PROGRESS'} ? 'badge bg-primary' :
-			                          'badge bg-secondary')"
-			          th:text="${task.status}"
+			          th:text="${task.status.name}"
 			          style="cursor:pointer;"
 			          th:onclick="'enableStatusEdit(' + ${task.id} + ')'">
 			    </span>
@@ -123,10 +120,10 @@
 			    <select th:id="'status-edit-' + ${task.id}"
 			            class="form-select form-select-sm d-none"
 			            th:onchange="'updateTaskStatus(' + ${task.id} + ', this.value)'">
-						<option th:each="status : ${statuses}"
-						        th:value="${status}"
-						        th:text="${status}"
-						        th:selected="${task.status == status}">
+						<option th:each="status : ${taskStatuses}"
+						        th:value="${status.id}"
+						        th:text="${status.name}"
+						        th:selected="${task.status.id == status.id}">
 						</option>
 			    </select>
 
@@ -221,9 +218,9 @@
 		      <label class="form-label fw-semibold">Status</label>
 		      <select class="form-select"
 		              th:field="*{status}">
-		        <option value="PENDING">Pending</option>
-		        <option value="IN_PROGRESS">In Progress</option>
-		        <option value="COMPLETED">Completed</option>
+		      <option th:each="status : ${taskStatuses}"
+					 th:value="${status.id}"
+					 th:text="${status.name}"></option>  
 		      </select>
 		    </div>
 		  </div>
@@ -518,7 +515,7 @@
 				document.querySelector('[name="title"]').value = task.title;
 				document.querySelector('[name="description"]').value = task.description || '';
 				document.querySelector('[name="priority"]').value = task.priority || '';
-				document.querySelector('[name="status"]').value = task.status || '';
+				document.querySelector('[name="status"]').value = task.status ? task.status.id : '';
 				document.querySelector('[name="startDate"]').value = task.startDate || '';
 				document.querySelector('[name="dueDate"]').value = task.dueDate || '';
 				document.querySelector('[name="taskType"]').value = task.taskType.id || '';
@@ -542,17 +539,8 @@
 			const view = document.getElementById("status-view-" + taskId);
 			const select = document.getElementById("status-edit-" + taskId);
 
-			view.innerText = formatStatus(newStatus);
-
-			view.classList.remove("bg-success", "bg-primary", "bg-secondary");
-
-			if (newStatus === "COMPLETED") {
-				view.classList.add("badge", "bg-success");
-			} else if (newStatus === "IN_PROGRESS") {
-				view.classList.add("badge", "bg-primary");
-			} else {
-				view.classList.add("badge", "bg-secondary");
-			}
+			const selectedText = select.options[select.selectedIndex].text;
+			view.innerText = selectedText;
 
 			select.classList.add("d-none");
 			view.classList.remove("d-none");

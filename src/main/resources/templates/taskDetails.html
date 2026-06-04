@@ -96,40 +96,37 @@
 		      <button id="statusButton"
 		              class="btn dropdown-toggle w-100"
 		              type="button"
-		              data-bs-toggle="dropdown"
-		              th:classappend="${currentTask.status== 'DONE'} ? ' btn-success' :
-		                              (${currentTask.status == 'IN_PROGRESS'} ? ' btn-primary' :
-		                              ' btn-secondary')">
+		              data-bs-toggle="dropdown">
 
 		        <span id="statusText"
-		              th:text="${currentTask.status}">
+		              th:text="${currentTask?.status?.name}">
 		        </span>
 
 		      </button>
 
 		      <ul class="dropdown-menu w-100">
 		        <li>
-		          <a class="dropdown-item"
+		          <!--<a class="dropdown-item"
 		             href="#"
 		             onclick="updateStatus('TO_DO')">
 		            To Do
-		          </a>
+		          </a>-->
 		        </li>
 
 		        <li>
-		          <a class="dropdown-item"
+		          <!--<a class="dropdown-item"
 		             href="#"
 		             onclick="updateStatus('IN_PROGRESS')">
 		            In Progress
-		          </a>
+		          </a>-->
 		        </li>
 
 		        <li>
-		          <a class="dropdown-item"
+		          <!--<a class="dropdown-item"
 		             href="#"
 		             onclick="updateStatus('DONE')">
 		            Done
-		          </a>
+		          </a>-->
 		        </li>
 		      </ul>
 

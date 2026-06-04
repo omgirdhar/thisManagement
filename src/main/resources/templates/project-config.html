@@ -63,7 +63,7 @@
 
         <div class="col-md-6">
           <input class="form-control"
-                 name="name"
+                 name="taskTypeName"
                  placeholder="Task Type Name"
                  required>
         </div>
@@ -94,12 +94,66 @@
 
     </div>
 
-    <!-- STATUS TAB (EMPTY FOR NOW) -->
-    <div class="tab-pane fade" id="statuses">
-      <div class="alert alert-info">
-        Status configuration coming next.
-      </div>
-    </div>
+	<!-- STATUS TAB -->
+	<div class="tab-pane fade" id="statuses">
+
+	  <!-- CREATE STATUS FORM -->
+	  <form th:action="@{/projects/{id}/config/statuses(id=${project.id})}"
+	        method="post"
+	        class="row g-2 mb-3">
+
+	    <div class="col-md-5">
+	      <input class="form-control"
+	             name="taskStatusName"
+	             placeholder="Status Name (e.g. To Do)"
+	             required>
+	    </div>
+
+	    <div class="col-md-5">
+	      <input class="form-control"
+	             name="taskStatusCode"
+	             placeholder="Code (e.g. TODO)"
+	             required>
+	    </div>
+
+	    <div class="col-md-2">
+	      <button class="btn btn-success w-100">
+	        <i class="bi bi-plus-circle"></i> Add
+	      </button>
+	    </div>
+
+	  </form>
+
+	  <!-- STATUS LIST -->
+	  <table class="table table-bordered bg-white">
+	    <thead class="table-dark">
+	      <tr>
+	        <th>#</th>
+	        <th>Name</th>
+	        <th>Code</th>
+	        <th>Actions</th>
+	      </tr>
+	    </thead>
+
+	    <tbody>
+	      <tr th:each="s, stat : ${statuses}">
+	        <td th:text="${stat.count}"></td>
+	        <td th:text="${s.name}"></td>
+	        <td th:text="${s.code}"></td>
+
+	        <td>
+	          <!-- delete (optional for now) -->
+	          <a th:href="@{/projects/{projectId}/config/statuses/delete/{id}(projectId=${project.id}, id=${s.id})}"
+	             class="btn btn-sm btn-danger"
+	             onclick="return confirm('Delete status?')">
+	            <i class="bi bi-trash"></i>
+	          </a>
+	        </td>
+	      </tr>
+	    </tbody>
+	  </table>
+
+	</div>
 
     <!-- WORKFLOW TAB (EMPTY FOR NOW) -->
     <div class="tab-pane fade" id="workflow">
@@ -115,5 +169,25 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="/js/sidebar.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nameInput = document.querySelector("input[name='taskStatusName']");
+    const codeInput = document.querySelector("input[name='taskStatusCode']");
+
+    if (!nameInput || !codeInput) return;
+
+    nameInput.addEventListener("input", function () {
+
+        const code = this.value
+            .toUpperCase()
+            .replace(/\s+/g, "_")
+            .replace(/[^A-Z0-9_]/g, "");
+
+        codeInput.value = code;
+    });
+
+});
+</script>
 </body>
 </html>

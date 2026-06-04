@@ -3,6 +3,7 @@ package com.application.management.dto;
 import java.time.LocalDate;
 
 import com.application.management.model.Task;
+import com.application.management.model.TaskStatus;
 import com.application.management.model.TaskType;
 
 public class TaskEditDTO {
@@ -10,7 +11,7 @@ public class TaskEditDTO {
     private Long id;
     private String title;
     private String description;
-    private String status;
+    private TaskStatus status;
     private String priority;
     private LocalDate startDate;
     private LocalDate dueDate;
@@ -66,10 +67,10 @@ public class TaskEditDTO {
 	public void setDescription(String description) {
 		this.description = description;
 	}
-	public String getStatus() {
+	public TaskStatus getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(TaskStatus status) {
 		this.status = status;
 	}
 	public String getPriority() {

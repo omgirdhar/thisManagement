@@ -32,6 +32,7 @@ import com.application.management.model.User;
 import com.application.management.service.CommentService;
 import com.application.management.service.ProjectService;
 import com.application.management.service.TaskService;
+import com.application.management.service.TaskStatusService;
 import com.application.management.service.TaskTypeService;
 import com.application.management.service.UserService;
 import com.application.management.utils.TimeFormatUtils;
@@ -46,13 +47,15 @@ public class TaskController {
     private final CommentService commentService;
     private final UserService userService;
     private final TaskTypeService taskTypeService; 
+    private final TaskStatusService taskStatusService;
 
-    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService, TaskTypeService taskTypeService) {
+    TaskController(ProjectService projectService, TaskService taskService, CommentService commentService, UserService userService, TaskTypeService taskTypeService, TaskStatusService taskStatusService) {
         this.projectService = projectService;
         this.taskService = taskService;
         this.commentService = commentService;
 		this.userService = userService;
 		this.taskTypeService = taskTypeService;
+		this.taskStatusService = taskStatusService;
     }
 
     @GetMapping
@@ -79,7 +82,7 @@ public class TaskController {
         Task newTask = new Task();
 //        newTask.setTaskType(TaskType.TASK);
         model.addAttribute("newTask", newTask);
-        model.addAttribute("statuses", Enums.Status.getAllStatuses());
+        model.addAttribute("taskStatuses", taskStatusService.getByProject(projectId));
         return "usersProjectTasks";
     }
     
@@ -201,7 +204,7 @@ public class TaskController {
 
         model.addAttribute("comments", comments);
         model.addAttribute("currentTask", currentTask);
-        model.addAttribute("statuses", Enums.Status.getAllStatuses());
+        model.addAttribute("taskStatuses", taskStatusService.getByProject(projectId));
         return "taskDetails";
     }
 
@@ -221,12 +224,12 @@ public class TaskController {
 		subtask.setTitle(request.getTitle());
 		subtask.setProject(parent.getProject());
 		subtask.setParentTask(parent);
-		subtask.setStatus(Enums.Status.TODO.name());
+//		subtask.setStatus(Enums.Status.TODO.name());
 		User currentUser = userService.getCurrentUser();
 	    subtask.setAssignee(currentUser);
 		taskService.saveTask(subtask);
 
-		return ResponseEntity.ok(new SubtaskResponse(subtask.getId(), subtask.getTitle(), subtask.getStatus()));
+		return ResponseEntity.ok(new SubtaskResponse(subtask.getId(), subtask.getTitle(), subtask.getStatus().getName()));
 	}
 
 }

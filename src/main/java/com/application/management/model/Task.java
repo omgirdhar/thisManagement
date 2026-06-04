@@ -29,7 +29,8 @@ public class Task {
 
     private String title;
 
-    private String status;
+    @ManyToOne
+    private TaskStatus status;
 
     private LocalDate dueDate;
     
@@ -80,7 +81,7 @@ public class Task {
 
     public Task() {}
 
-    public Task(Long id, String title, String status, LocalDate dueDate, User assignee, Project project) {
+    public Task(Long id, String title, TaskStatus status, LocalDate dueDate, User assignee, Project project) {
         this.id = id;
         this.title = title;
         this.status = status;
@@ -105,11 +106,11 @@ public class Task {
 		this.title = title;
 	}
 
-	public String getStatus() {
+	public TaskStatus getStatus() {
 		return status;
 	}
 
-	public void setStatus(String status) {
+	public void setStatus(TaskStatus status) {
 		this.status = status;
 	}
 
